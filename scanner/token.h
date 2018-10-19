@@ -19,7 +19,7 @@ enum TokenType {
 
 // the token type
 struct Token {
-  TokenType type;
+  enum TokenType type;
   char* value;
 };
 
