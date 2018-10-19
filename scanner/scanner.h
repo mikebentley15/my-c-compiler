@@ -5,16 +5,16 @@
 #include "charstream.h"
 
 struct Scanner {
-  CharStream* in;
+  struct CharStream* in;
   bool is_init;
   bool is_eof;
   char next;
   char[500] tok_buf;
 };
 
-void Scanner_init(Scanner* scanner, CharStream* stream);
-void Scanner_close(Scanner* scanner); // doesn't close scanner->in
-bool Scanner_is_eof(Scanner* scanner);
-Token Scanner_next(Scanner* scanner);
+void Scanner_init(struct Scanner* scanner, struct CharStream* stream);
+void Scanner_close(struct Scanner* scanner); // doesn't close scanner->in
+bool Scanner_is_eof(struct Scanner* scanner);
+struct Token Scanner_next(struct Scanner* scanner);
 
 #endif // SCANNER_H
