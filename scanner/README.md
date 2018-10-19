@@ -38,7 +38,8 @@ There are operators that I want to support:
 - `/` division
 - `%` modulus
 - `(` and `)` parentheses
-- `=` assignment
+- `--` decrement (both pre and post)
+- `++` increment (both pre and post)
 
 Then there are boolean comparison operators:
 
@@ -48,9 +49,11 @@ Then there are boolean comparison operators:
 - `>=` greater than or equal to
 - `&&` boolean and
 - `||` boolean or
+- `!` not operator
 
 Now for operators on pointers and structs:
 
+- `&` address of operator
 - `.` to access an element of a struct
 - `->` to access an element of a struct pointer
 - `*` to dereference a pointer
@@ -69,6 +72,29 @@ the subset of the language I want to support.
 - `^` bitwise xor
 - `&` bitwise and
 - `|` bitwise or
+- `~` bitwise invert bits
+
+Ternary operators are for now not supported:
+
+- `:`
+- `?`
+
+Supported assignment operators
+
+- `=` assignment
+
+Not supported assignment operators
+
+- `+=` plus equals
+- `-=` minus equals
+- `*=` times equals
+- `/=` divide equals
+- `%=` mod equals
+- `<<=` left shift equals
+- `>>=` right shift equals
+- `&=` bitwise and equals
+- `^=` bitwise xor equals
+- `|=` bitwise or equals
 
 ### Scope Specification
 
@@ -165,36 +191,69 @@ There are two styles of comments:
 - `// ...` ended by a newline
 - `/* ... */` which can have newlines inside
 
+### Boolean Values
+
+The C language does not support the `bool` type, but my language will.  There
+will be two values,
+
+- `true`
+- `false`
+
+### NULL type
+
+The value of null pointers is `NULL`.  This is a simple alias to zero.
+
 ### All Keywords
 
 Some keywords were specified earlier, but here is the full complete list,
 sorted alphabetically
 
-- `char`
-- `int`
 - `bool`
+- `break`
+- `char`
+- `const`
+- `continue`
+- `else`
+- `enum`
+- `enum`
+- `if`
+- `int`
+- `return`
+- `sizeof`
 - `struct`
 - `typedef`
-- `return`
-- `if`
-- `else`
+- `void`
 - `while`
-- `enum`
+- `true`
+- `false`
 
 Not supported keywords:
 
-- `short`
-- `byte`
-- `long`
-- `long long`
-- `long double`
-- `float`
-- `double`
-- `for`
-- `do`, as in `do`..`while`
+- `\_Packed`
 - `and`
+- `auto`
+- `byte`
+- `case`
+- `default`
+- `do`, as in `do`..`while`
+- `double`
+- `extern`
+- `float`
+- `for`
+- `goto`
+- `long double`
+- `long long`
+- `long`
 - `or`
+- `register`
+- `short`
+- `signed`
+- `static`
+- `switch`
 - `union`
+- `unsigned`
+- `volatile`
+
 
 ### Identifiers
 
@@ -221,9 +280,25 @@ To specify a single character value, it will be within single quotes, e.g.
 `'a'` to represent the character "a".  There are some characters you need to
 escape to represent:
 
-- `'\n'` newline
-- `'\''` single quote
-- `'\\'` a literal backslash
+- `\"` double quote
+- `\'` single quote
+- `\\` a literal backslash
+- `\a` audible bell (0x07)
+- `\b` backspace (0x08)
+- `\f` form feed - new page (0x0c)
+- `\n` newline (0x0a)
+- `\r` carriage return (0x0d)
+- `\t` horizontal tab (0x09)
+- `\v` vertical tab (0x0b)
+
+Escape characters not supported are
+
+- `\?` (used to not be ambiguous with trigraphs which are not supported)
+- `\nnn` where nnn is an octal value
+- `\unnnn` where nnnn is a unicode sequence
+- `\Unnnnnnn` where nnnnnnn is a unicode sequence of several characters
+
+Trigraphs are not supported.
 
 ### Whitespace
 
