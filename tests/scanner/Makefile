@@ -1,7 +1,7 @@
 CC           := clang
 CFLAGS       :=
 CFLAGS       += -I../../scanner
-CFLAGS       += -I../..
+CFLAGS       += -I../../bootstrap
 SOURCE       := $(wildcard *.c)
 TARGETS      := $(SOURCE:%.c=%)
 RUN_TARGETS  := $(TARGETS:%=run__%)

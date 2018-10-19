@@ -1,4 +1,4 @@
-#include "bool.h"
+#include "bootstrap.h"
 #include "charstream.c"
 
 int tst_CharStream_init() {
