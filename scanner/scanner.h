@@ -10,6 +10,7 @@ struct Scanner {
   bool is_eof;
   char next;
   char[500] tok_buf;
+  int buflen;
 };
 
 void Scanner_init(struct Scanner* scanner, struct CharStream* stream);

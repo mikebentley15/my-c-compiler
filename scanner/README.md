@@ -215,7 +215,6 @@ sorted alphabetically
 - `continue`
 - `else`
 - `enum`
-- `enum`
 - `if`
 - `int`
 - `return`
