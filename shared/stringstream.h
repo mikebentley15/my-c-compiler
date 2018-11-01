@@ -17,6 +17,6 @@ void SS_close(struct StringStream* stream);
 bool SS_is_eof(struct StringStream* stream);
 char SS_get_char(struct StringStream* stream);
 
-CharStream SS_to_CharStream(struct StringStream* stream);
+struct CharStream SS_to_CharStream(struct StringStream* stream);
 
 #endif // STRINGSTREAM_H

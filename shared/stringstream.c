@@ -1,5 +1,7 @@
 #include "stringstream.h"
 
+#include <stddef.h> // for NULL
+
 void SS_init(struct StringStream* stream, const char* content) {
   if (stream->is_init) {
     SS_close(stream);
@@ -47,6 +49,11 @@ int         SS_private_CS_get_lineno(void* stream) {
   return ss->lineno;
 }
 
+int         SS_private_CS_get_column(void* stream) {
+  struct StringStream* ss = (struct StringStream*) stream;
+  return ss->column;
+}
+
 const char* SS_private_CS_get_filepath(void* stream) {
   return "<content>";
 }
@@ -61,11 +68,12 @@ void        SS_private_CS_close(void* stream) {
   SS_close(ss);
 }
 
-CharStream SS_to_CharStream(struct StringStream* stream) {
-  CharStream cs;
+struct CharStream SS_to_CharStream(struct StringStream* stream) {
+  struct CharStream cs;
   cs.arg          = stream;
   cs.get_char     = &SS_private_CS_get_char;
   cs.get_lineno   = &SS_private_CS_get_lineno;
+  cs.get_column   = &SS_private_CS_get_column;
   cs.get_filepath = &SS_private_CS_get_filepath;
   cs.is_eof       = &SS_private_CS_is_eof;
   cs.close        = &SS_private_CS_close;
