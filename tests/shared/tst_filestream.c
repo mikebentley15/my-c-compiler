@@ -1,20 +1,10 @@
-#include "bootstrap.h"
 #include "filestream.c"
+#include "test_harness.c"
 
 #include <stddef.h> // for NULL
-#include <stdio.h>  // for fputs() and putc()
+#include <stdio.h>  // for fputc()
 
-int testval = 0;
 const char* test_file = "filestream_input.txt";
-
-void test_assert_msg(bool expr, const char* msg) {
-  if (!expr) {
-    testval++;
-    fputs("Assertion Failure: ", stderr);
-    fputs(msg, stderr);
-    fputc('\n', stderr);
-  }
-}
 
 void tst_FS_init() {
   struct FileStream fs;

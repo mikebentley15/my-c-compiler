@@ -1,19 +1,7 @@
-#include "bootstrap.h"
 #include "stringstream.c"
+#include "test_harness.c"
 
 #include <stddef.h> // for NULL
-#include <stdio.h>  // for fputs() and putc()
-
-int testval = 0;
-
-void test_assert_msg(bool expr, const char* msg) {
-  if (!expr) {
-    testval++;
-    fputs("Assertion Failure: ", stderr);
-    fputs(msg, stderr);
-    fputc('\n', stderr);
-  }
-}
 
 void tst_SS_init() {
   struct StringStream ss;
