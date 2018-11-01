@@ -174,9 +174,12 @@ void tst_SS_get_char() {
   test_assert_msg(ss.column == 0, "tst_SS_get_char ts 10: column == 0");
   test_assert_msg(ss.index == 8, "tst_SS_get_char ts 10: index == 8");
   test_assert_msg(ss.is_init == true, "tst_SS_get_char ts 10: is_init == true");
+
+  SS_close(&ss);
 }
 
 #include "charstream.c"
+#include "stringfunc.c"
 
 void tst_SS_to_CharStream() {
   struct StringStream ss;
@@ -188,6 +191,7 @@ void tst_SS_to_CharStream() {
   SS_init(&ss, content);
 
   struct CharStream cs = SS_to_CharStream(&ss);
+  test_assert_msg(cs.is_init, "tst_SS_to_CharStream begin: is_init == true");
 
   ss.lineno = 5;
   lineno = CS_get_lineno(&cs);
@@ -207,9 +211,43 @@ void tst_SS_to_CharStream() {
   ss.index = 10;
   is_eof = CS_is_eof(&cs);
   ch = CS_get_char(&cs);
-  test_assert_msg(is_eof, "tst_SS_to_CharStream 01: is_eof == true");
-  test_assert_msg(ch == '\0', "tst_SS_to_CharStream 01: ch == '\\0'");
-  test_assert_msg(ss.index == 10, "tst_SS_to_CharStream 01: index == 10");
+  test_assert_msg(is_eof, "tst_SS_to_CharStream 02: is_eof == true");
+  test_assert_msg(ch == '\0', "tst_SS_to_CharStream 02: ch == '\\0'");
+  test_assert_msg(ss.index == 10, "tst_SS_to_CharStream 02: index == 10");
+
+  const char* filepath = CS_get_filepath(&cs);
+  test_assert_msg(strequal(filepath, "<content>"),
+      "tst_SS_to_CharStream: filepath == \"<content>\"");
+
+  CS_close(&cs);
+
+  test_assert_msg(!cs.is_init,
+      "tst_SS_to_CharStream close: cs.is_init == false");
+  test_assert_msg(cs.arg == NULL,
+      "tst_SS_to_CharStream close: cs.arg == NULL");
+  test_assert_msg(cs.get_char == NULL,
+      "tst_SS_to_CharStream close: cs.get_char == NULL");
+  test_assert_msg(cs.get_lineno == NULL,
+      "tst_SS_to_CharStream close: cs.get_lineno == NULL");
+  test_assert_msg(cs.get_column == NULL,
+      "tst_SS_to_CharStream close: cs.get_column == NULL");
+  test_assert_msg(cs.get_filepath == NULL,
+      "tst_SS_to_CharStream close: cs.get_filepath == NULL");
+  test_assert_msg(cs.is_eof == NULL,
+      "tst_SS_to_CharStream close: cs.is_eof == NULL");
+  test_assert_msg(cs.close == NULL,
+      "tst_SS_to_CharStream close: cs.close == NULL");
+
+  test_assert_msg(!ss.is_init,
+      "tst_SS_to_CharStream close: ss.is_init == false");
+  test_assert_msg(ss.content == NULL,
+      "tst_SS_to_CharStream close: ss.content == NULL");
+  test_assert_msg(ss.lineno == 0,
+      "tst_SS_to_CharStream close: ss.lineno == 0");
+  test_assert_msg(ss.column == 0,
+      "tst_SS_to_CharStream close: ss.column == 0");
+  test_assert_msg(ss.index == 0,
+      "tst_SS_to_CharStream close: ss.index == 0");
 }
 
 int main(void) {

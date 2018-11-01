@@ -3,9 +3,6 @@
 #include <stddef.h> // for NULL
 
 void SS_init(struct StringStream* stream, const char* content) {
-  if (stream->is_init) {
-    SS_close(stream);
-  }
   stream->content = content;
   stream->lineno  = 1;
   stream->column  = 0;
