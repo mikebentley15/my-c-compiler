@@ -1,5 +1,7 @@
 #include "stringfunc.h"
 
+#include <stddef.h> // for NULL
+
 bool strequal(const char* a, const char* b) {
   bool are_equal = false;
   if (a == b) {
