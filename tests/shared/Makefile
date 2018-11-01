@@ -3,6 +3,7 @@ DEPDIR       := ../../shared
 BOOTSTRAPDIR := ../../bootstrap
 TESTHARNESS  := ../test_harness.c
 CFLAGS       :=
+CFLAGS       += -g
 CFLAGS       += -I..
 CFLAGS       += -I$(DEPDIR)
 CFLAGS       += -I$(BOOTSTRAPDIR)
