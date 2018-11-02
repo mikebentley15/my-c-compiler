@@ -26,7 +26,18 @@ directive name.  The preprocessing directives that are supported are
 Note, these preprocessing directives are not case sensative, but the `FNAME`,
 `VARNAME` and `VALUE` are.  The two `#include` variants are different, where
 the `<FNAME>` variant is a system include, so the scanner should distinguish
-this in some way from the other one.
+this in some way from the other one.  Also, there can be any whitespace between
+the `#` sign and the directive, except for line feeds and newlines (meaning
+spaces and tabs are allowed).
+
+Macro defined functions are not supported, just like pragmas and other macros
+not defined above.
+
+As far as the scanner is concerned, these are not preprocessed, but rather
+simply tokenized.  This allows this same scanner to be used within a
+preprocessor, only to have the output of the preprocessor passed again to
+another instance of this same scanner.
+
 
 ### Arithmetic and Operators
 
@@ -191,6 +202,7 @@ There are two styles of comments:
 - `// ...` ended by a newline
 - `/* ... */` which can have newlines inside
 
+
 ### Boolean Values
 
 The C language does not support the `bool` type, but my language will.  There
@@ -198,6 +210,7 @@ will be two values,
 
 - `true`
 - `false`
+
 
 ### NULL type
 
