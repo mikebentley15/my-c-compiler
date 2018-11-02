@@ -3,19 +3,49 @@
 #include <stddef.h> // for NULL
 
 bool strequal(const char* a, const char* b) {
-  bool are_equal = false;
+  return strcompare(a, b) == 0;
+}
+
+bool strgreater(const char* a, const char* b) {
+  return strcompare(a, b) > 0;
+}
+
+// returns
+// - negative if a < b
+// - zero     if a == b
+// - positive if a > b
+int strcompare(const char* a, const char* b) {
+  int comparison = 0;
   if (a == b) {
-    are_equal = true;
-  } else if (a == NULL || b == NULL) {
-    are_equal = false;
+    comparison = 0;
+  } else if (a == NULL) {
+    comparison = -1;
+  } else if (b == NULL) {
+    comparison = 1;
   } else {
     int j = 0;
-    int k = 0;
-    while (a[j] == b[k] && a[j] != '\0' && b[k] != '\0') {
+    while (a[j] == b[j] && a[j] != '\0' && b[j] != '\0') {
       j++;
-      k++;
     }
-    are_equal = (a[j] == b[k]);
+    comparison = a[j] - b[j];
   }
-  return are_equal;
+  return comparison;
+}
+
+void to_lowercase(char* str) {
+  int i = 0;
+  while (str[i] != '\0') {
+    if (str[i] >= 'A' && str[i] <= 'Z') {
+      str[i] = str[i] - 'A' + 'a';
+    }
+  }
+}
+
+void to_uppercase(char* str) {
+  int i = 0;
+  while (str[i] != '\0') {
+    if (str[i] >= 'a' && str[i] <= 'z') {
+      str[i] = str[i] - 'a' + 'A';
+    }
+  }
 }
