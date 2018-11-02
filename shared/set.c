@@ -3,6 +3,8 @@
 #include "stringfunc.h"
 #include "util.h"
 
+#include <stdlib.h> // for malloc() and free()
+
 #define SSET_MULT_FACTOR 4
 
 void SSet_init(struct StringSet* set, int capacity) {

@@ -7,7 +7,7 @@ bool strequal(const char* a, const char* b);
 bool strgreater(const char* a, const char* b);
 int strcompare(const char* a, const char* b);
 
-void to_lowercase(char* str);
-void to_uppercase(char* str);
+char* to_lowercase(char* str);
+char* to_uppercase(char* str);
 
 #endif // STRINGFUNC_H

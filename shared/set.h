@@ -1,6 +1,8 @@
 #ifndef SET_H
 #define SET_H
 
+#include "bootstrap.h"
+
 struct StringSet {
   const char **data; // the set itself
   int size;          // how many elements are stored
