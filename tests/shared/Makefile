@@ -20,8 +20,9 @@ DEPS         += $(TESTHARNESS)
 
 -include ../color_out.mk
 
-.PHONY: all run clean
+.PHONY: all run clean build
 all: run $(TARGETS)
+build: $(TARGETS)
 run: $(RUN_TARGETS)
 clean:
 	rm -f $(TARGETS)

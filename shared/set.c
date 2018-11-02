@@ -37,12 +37,7 @@ void SSet_clear(struct StringSet* set) {
   }
 }
 
-int private_prev_idx(int capacity, int idx) {
-  // simply the previous index, but in a circular buffer
-  return (idx + capacity - 1) % capacity;
-}
-
-int private_next_idx(int capacity, int idx) {
+int SSet_private_next_idx(int capacity, int idx) {
   // simply the next index, but in a circular buffer
   return (idx + 1) % capacity;
 }
@@ -50,7 +45,7 @@ int private_next_idx(int capacity, int idx) {
 bool SSet_add(struct StringSet* set, const char* elem) {
   int idx = djb2_hash(elem) % set->capacity;
   bool is_contained = false;
-  int current_idx = private_next_idx(set->capacity, idx);
+  int current_idx = SSet_private_next_idx(set->capacity, idx);
   if (set->data[idx] == NULL) {
     is_contained = false;
     set->data[idx] = elem;
@@ -67,7 +62,7 @@ bool SSet_add(struct StringSet* set, const char* elem) {
         is_contained = true;
         break;
       }
-      current_idx = private_next_idx(set->capacity, current_idx);
+      current_idx = SSet_private_next_idx(set->capacity, current_idx);
     }
   }
   if (!is_contained) {
@@ -79,7 +74,7 @@ bool SSet_add(struct StringSet* set, const char* elem) {
 bool SSet_contains(struct StringSet* set, const char* elem) {
   int idx = djb2_hash(elem) % set->capacity;
   bool is_contained = false;
-  int current_idx = private_next_idx(set->capacity, idx);
+  int current_idx = SSet_private_next_idx(set->capacity, idx);
   if (set->data[idx] == NULL) {
     is_contained = false;
   } else if (strequal(set->data[idx], elem)) {
@@ -94,7 +89,7 @@ bool SSet_contains(struct StringSet* set, const char* elem) {
         is_contained = true;
         break;
       }
-      current_idx = private_next_idx(set->capacity, current_idx);
+      current_idx = SSet_private_next_idx(set->capacity, current_idx);
     }
   }
   return is_contained;
