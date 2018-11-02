@@ -80,11 +80,39 @@ void tst_to_uppercase() {
       "tst_to_lowercase: lowercase('AcE pIlOt!') == 'ACE PILOT!'");
 }
 
+void tst_memcopy() {
+  char buf[50];
+  memcopy(buf, "hello there!", 13);
+  test_assert_msg(strequal(buf, "hello there!"),
+      "tst_memcopy: buf == 'hello there!'");
+}
+
+void tst_memfill() {
+  char buf[20];
+  memfill(buf, 19, 'a');
+  buf[19] = '\0';
+  test_assert_msg(strequal(buf, "aaaaaaaaaaaaaaaaaaa"),
+      "tst_memfill: buf == 'a'*19");
+}
+
+void tst_memzero() {
+  int buf[20];
+  memzero(buf, 20*sizeof(int));
+  int i = 0;
+  while (i < 20) {
+    test_assert_msg(buf[i] == 0, "tst_memzero: buf[i] == 0");
+    i++;
+  }
+}
+
 int main(void) {
   tst_strequal();
   tst_strgreater();
   tst_strcompare();
   tst_to_lowercase();
   tst_to_uppercase();
+  tst_memcopy();
+  tst_memfill();
+  tst_memzero();
   return testval;
 }

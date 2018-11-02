@@ -10,4 +10,8 @@ int strcompare(const char* a, const char* b);
 char* to_lowercase(char* str);
 char* to_uppercase(char* str);
 
+void* memcopy(void* dest, const void* source, int nbytes);
+void* memfill(void* dest, int nbytes, char val);
+void* memzero(void* dest, int nbytes);
+
 #endif // STRINGFUNC_H

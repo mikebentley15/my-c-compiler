@@ -53,3 +53,34 @@ char* to_uppercase(char* str) {
   }
   return str;
 }
+
+void* memcopy(void* dest, const void* source, int nbytes) {
+  char *to   = (char*) dest;
+  char *from = (char*) source;
+  int i = 0;
+  while (i < nbytes) {
+    to[i] = from[i];
+    i++;
+  }
+  return dest;
+}
+
+void* memfill(void* dest, int nbytes, char val) {
+  char* to = (char*) dest;
+  int i = 0;
+  while (i < nbytes) {
+    to[i] = val;
+    i++;
+  }
+  return dest;
+}
+
+void* memzero(void* dest, int nbytes) {
+  char* to = (char*) dest;
+  int i = 0;
+  while (i < nbytes) {
+    to[i] = '\0';
+    i++;
+  }
+  return dest;
+}
