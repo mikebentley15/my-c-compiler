@@ -6,6 +6,10 @@
  *   http://stackoverflow.com/questions/30052316/find-next-prime-number-algorithm
  */
 bool is_prime(int number) {
+  if (number <= 1) {
+    return false;
+  }
+
   if (number == 2 || number == 3) {
     return true;
   }

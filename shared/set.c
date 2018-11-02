@@ -9,11 +9,12 @@
 
 void SSet_init(struct StringSet* set, int capacity) {
   set->size = 0;
+  set->collisions = 0;
   set->capacity = next_prime(SSET_MULT_FACTOR * capacity);
-  set->data = (const char**) malloc(capacity * sizeof(const char*));
+  set->data = (const char**) malloc(set->capacity * sizeof(const char*));
   // TODO: check for set->data == NULL
   int i = 0;
-  while (i < capacity) {
+  while (i < set->capacity) {
     set->data[i] = NULL;
     i++;
   }
@@ -22,6 +23,7 @@ void SSet_init(struct StringSet* set, int capacity) {
 void SSet_del(struct StringSet* set) {
   set->size = 0;
   set->capacity = 0;
+  set->collisions = 0;
   free(set->data);
   set->data = NULL;
 }
@@ -52,6 +54,8 @@ bool SSet_add(struct StringSet* set, const char* elem) {
   if (set->data[idx] == NULL) {
     is_contained = false;
     set->data[idx] = elem;
+  } else if (strequal(set->data[idx], elem)) {
+    is_contained = true;
   } else {
     while (current_idx != idx) {
       set->collisions++;
@@ -78,6 +82,8 @@ bool SSet_contains(struct StringSet* set, const char* elem) {
   int current_idx = private_next_idx(set->capacity, idx);
   if (set->data[idx] == NULL) {
     is_contained = false;
+  } else if (strequal(set->data[idx], elem)) {
+    is_contained = true;
   } else {
     while (current_idx != idx) {
       set->collisions++;
@@ -91,8 +97,5 @@ bool SSet_contains(struct StringSet* set, const char* elem) {
       current_idx = private_next_idx(set->capacity, current_idx);
     }
   }
-  if (!is_contained) {
-    set->size++;
-  }
-  return !is_contained;
+  return is_contained;
 }
