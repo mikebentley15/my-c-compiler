@@ -1,8 +1,9 @@
+tst_dict
 tst_filestream
+tst_hash
 tst_linkedlist
+tst_set
 tst_stringfunc
 tst_stringstream
-tst_dict
-tst_hash
-tst_set
 tst_util
+tst_vector
