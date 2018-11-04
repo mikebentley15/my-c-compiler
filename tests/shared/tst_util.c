@@ -1,6 +1,10 @@
 #include "util.c"
 #include "test_harness.c"
 
+void tst_error() {
+  test_assert_msg(false, "tst_error: unimplemnted");
+}
+
 void tst_is_prime() {
   test_assert_msg(!is_prime(  1),   "1 is not prime");
   test_assert_msg( is_prime(  2),   "2 is prime");
@@ -38,6 +42,7 @@ void tst_next_prime() {
 }
 
 int main(void) {
+  tst_error();
   tst_is_prime();
   tst_next_prime();
   return testval;

@@ -3,6 +3,10 @@
 
 #include "bootstrap.h"
 
+bool is_whitespace(char ch);
+bool is_digit(char ch);
+bool is_letter(char ch);
+
 bool strequal(const char* a, const char* b);
 bool strgreater(const char* a, const char* b);
 int strcompare(const char* a, const char* b);

@@ -1,6 +1,18 @@
 #include "stringfunc.c"
 #include "test_harness.c"
 
+void tst_is_whitespace() {
+  test_assert_msg(false, "tst_is_whitespace: unimplemented");
+}
+
+void tst_is_digit() {
+  test_assert_msg(false, "tst_is_digit: unimplemented");
+}
+
+void tst_is_letter() {
+  test_assert_msg(false, "tst_is_letter: unimplemented");
+}
+
 void tst_strequal() {
   test_assert_msg(strequal("hello", "hello"),
       "tst_strequal: 'hello' == 'hello'");
@@ -106,6 +118,9 @@ void tst_memzero() {
 }
 
 int main(void) {
+  tst_is_whitespace();
+  tst_is_digit();
+  tst_is_letter();
   tst_strequal();
   tst_strgreater();
   tst_strcompare();

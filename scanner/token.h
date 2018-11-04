@@ -58,14 +58,22 @@ enum TokenType {
 
   // Preprocessing tokens
   TT_PREPROCESSING_BEGIN,
+
+  TT_POUND,                        // '#' symbol
   TT_PP_INCLUDE,                   // #include
   TT_PP_IFDEF,                     // #ifdef
   TT_PP_IFNDEF,                    // #ifndef
   TT_PP_ELSE,                      // #else
   TT_PP_ENDIF,                     // #endif
   TT_PP_DEFINE,                    // #define
+
+  TT_PP_UNSUPPORTED_BEGIN,
+  TT_PP_PRAGMA,                    // #pragma
+  TT_PP_UNDEF,                     // #undef
+  TT_PP_UNSUPPORTED_END,
+
   TT_PREPROCESSING_END,
-  
+
   // All operators
   TT_OPERATOR_BEGIN,
   
@@ -150,6 +158,16 @@ struct Token {
   enum TokenType  type;
   char*           strval;
   int             intval;
+};
+
+struct TokenStream {
+  void*          arg;
+  struct Token (*next_token)(void*);
+  int          (*get_lineno)(void*);
+  int          (*get_column)(void*);
+  const char*  (*get_filepath)(void*);
+  bool         (*is_eof)(void*);
+  void         (*close)(void*);
 };
 
 #endif // TOKEN_H

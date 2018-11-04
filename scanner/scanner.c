@@ -1,79 +1,8 @@
 #include "scanner.h"
+#include "util.h"
+#include "stringfunc.h"
 
 #include <stdio.h>
-
-// local functions begin
-
-bool string_equal(const char* a, const char* b) {
-  int i = 0;
-  while (a[i] == b[i] && a[i] != '\0') { i++; }
-  return a[i] == b[i];
-}
-
-void error(char *message) {
-  puts("Error: ");
-  puts(message);
-  putc('\n');
-}
-
-// Returns the TokenType enum for the keyword else TT_IDENTIFIER,
-enum TokenType getIdnetifierType(const char* word) {
-  enum TokenType type;
-
-  if      (string_equal(word, "_Packed"))  { type = TT_PACKED;     }
-  else if (string_equal(word, "and"))      { type = TT_AND;        }
-  else if (string_equal(word, "auto"))     { type = TT_AUTO;       }
-  else if (string_equal(word, "bool"))     { type = TT_BOOL;       }
-  else if (string_equal(word, "break"))    { type = TT_BREAK;      }
-  else if (string_equal(word, "byte"))     { type = TT_BYTE;       }
-  else if (string_equal(word, "case"))     { type = TT_CASE;       }
-  else if (string_equal(word, "char"))     { type = TT_CHAR;       }
-  else if (string_equal(word, "const"))    { type = TT_CONST;      }
-  else if (string_equal(word, "continue")) { type = TT_CONTINUE;   }
-  else if (string_equal(word, "default"))  { type = TT_DEFAULT;    }
-  else if (string_equal(word, "do"))       { type = TT_DO;         }
-  else if (string_equal(word, "double"))   { type = TT_DOUBLE;     }
-  else if (string_equal(word, "else"))     { type = TT_ELSE;       }
-  else if (string_equal(word, "enum"))     { type = TT_ENUM;       }
-  else if (string_equal(word, "extern"))   { type = TT_EXTERN;     }
-  else if (string_equal(word, "false"))    { type = TT_FALSE;      }
-  else if (string_equal(word, "float"))    { type = TT_FLOAT;      }
-  else if (string_equal(word, "for"))      { type = TT_FOR;        }
-  else if (string_equal(word, "goto"))     { type = TT_GOTO;       }
-  else if (string_equal(word, "if"))       { type = TT_IF;         }
-  else if (string_equal(word, "int"))      { type = TT_INT;        }
-  else if (string_equal(word, "long"))     { type = TT_LONG;       }
-  else if (string_equal(word, "or"))       { type = TT_OR;         }
-  else if (string_equal(word, "register")) { type = TT_REGISTER;   }
-  else if (string_equal(word, "return"))   { type = TT_RETURN;     }
-  else if (string_equal(word, "short"))    { type = TT_SHORT;      }
-  else if (string_equal(word, "signed"))   { type = TT_SIGNED;     }
-  else if (string_equal(word, "sizeof"))   { type = TT_SIZEOF;     }
-  else if (string_equal(word, "static"))   { type = TT_STATIC;     }
-  else if (string_equal(word, "struct"))   { type = TT_STRUCT;     }
-  else if (string_equal(word, "switch"))   { type = TT_SWITCH;     }
-  else if (string_equal(word, "true"))     { type = TT_TRUE;       }
-  else if (string_equal(word, "typedef"))  { type = TT_TYPEDEF;    }
-  else if (string_equal(word, "union"))    { type = TT_UNION;      }
-  else if (string_equal(word, "void"))     { type = TT_VOID;       }
-  else if (string_equal(word, "volatile")) { type = TT_VOLATILE;   }
-  else if (string_equal(word, "while"))    { type = TT_WHILE;      }
-  else                                     { type = TT_IDENTIFIER; }
-
-  return type;
-}
-
-bool is_whitspace(char ch) {
-  return ch == ' ' || ch == '\n' || ch == '\t';
-}
-
-bool is_digit(char ch) {
-  return ch >= '0' && ch <= '9';
-}
-
-bool is_letter(char ch) {
-  return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
-}
 
 // Returns the expanded version of "\<code>"
 char expand_escape_character(char code) {
@@ -108,23 +37,15 @@ void local_Scanner_nextchar(struct Scanner* scanner) {
 }
 
 void local_Scanner_keepchar(struct Scanner* scanner, char ch) {
-  if (buflen == 499) {
-    error("Scanner buffer exceeded");
-  } else {
-    scanner->tok_buf[scanner->buflen] = scanner->next;
-    scanner->buflen++;
-    scanner->tok_buf[scanner->buflen] = '\0';
-  }
+  Str_append(&(scanner->tok_buf), ch);
 }
 
 void local_Scanner_buf_rm_one(struct Scanner* scanner) {
-  scanner->buflen--;
-  scanner->tok_buf[scanner->buflen] = '\0';
+  Str_pop(&(scanner->tok_buf));
 }
 
 void local_Scanner_clearbuf(struct Scanner* scanner) {
-  scanner->buflen = 0;
-  scanner->tok_buf[scanner->buflen] = '\0';
+  Str_clear(&(scanner->tok_buf));
 }
 
 bool local_Scanner_character_literal(struct Scanner* scanner) {
@@ -161,7 +82,7 @@ bool local_Scanner_int_literal(struct Scanner* scanner) {
         local_Scanner_nextchar(scanner);
       }
       error("A multi-digit number cannot start with zero");
-      puts(scanner->tok_buf);
+      puts(scanner->tok_buf.data);
     }
     scanner->int_val = 0;
   } else if (is_digit(scanner->next)) { // nonzero
@@ -225,6 +146,7 @@ void Scanner_init(struct Scanner* scanner, struct CharStream* stream) {
   scanner->in = stream;
   scanner->is_init = true;
   scanner->is_eof = CharStream_is_eof(scanner->in);
+  Str_init(&(scanner->tok_buf));
   local_Scanner_clearbuf(scanner);
   local_Scanner_nextchar(scanner);
 }
@@ -234,7 +156,7 @@ void Scanner_close(struct Scanner* scanner) {
   scanner->is_init = false;
   scanner->is_eof = false;
   scanner->next = '\0';
-  scanner->tok_buf[0] = '\0';
+  Str_del(&(scanner->tok_buf));
 }
 
 bool Scanner_is_eof(struct Scanner* scanner) {
@@ -245,7 +167,7 @@ struct Token Scanner_next(struct Scanner* scanner) {
   struct Token tok;
   local_Scanner_clearbuf(scanner);
   tok.type = TT_ERROR;
-  tok.str_val = scanner->tok_buf;
+  tok.str_val = scanner->tok_buf.data;
   tok.int_val = 0;
 
   // eat whitespace
@@ -298,13 +220,8 @@ struct Token Scanner_next(struct Scanner* scanner) {
   } if (scanner->is_eof) {
     tok.type = TT_EOF;
   } else if (scanner->next == '#') {
-    // eat the rest of the line
-    while (scanner->next != '\n' && !scanner->is_eof) {
-      local_Scanner_nextchar(scanner);
-    }
-    tok.type = TT_ERROR;
-    error("Cannot handle preprocessing directive: ");
-    puts(scanner->tok_buf);
+    local_Scanner_nextchar(scanner);
+    tok.type = TT_POUND;
   } else if (scanner->next == '+') {
     local_Scanner_nextchar(scanner);
     if (scanner->next == '+') {
@@ -449,24 +366,60 @@ struct Token Scanner_next(struct Scanner* scanner) {
   } else if (local_Scanner_string_literal(scanner)) {
     tok.type = TT_STRING_LITERAL;
   } else if (local_Scanner_identifier(scanner)) {
-    tok.type = getIdentifierType(scanner->tok_buf);
+    tok.type = TT_IDENTIFIER;
   } else {
     local_Scanner_nextchar(scanner);
     tok.type = TT_ERROR;
     error("Unrecognized character: ");
-    puts(scanner->tok_buf);
+    puts(scanner->tok_buf.data);
   }
 
   // error handling
-  if (tok.type > TT_KEYWORD_UNSUPPORTED_BEGIN && tok.type < TT_KEYWORD_UNSUPPORTED_END) {
-    error("Unsupported keyword: ");
-    puts(scanner->tok_buf);
-  } else if (tok.type > TT_UNSUPPORTED_OPERATORS_BEGIN) {
+  if (tok.type >= TT_UNSUPPORTED_OPERATORS_BEGIN &&
+      tok.type <= TT_UNSUPPORTED_OPERATORS_END)
+  {
     error("Unsupported operator: ");
   }
-
-  // TODO: use a preprocessor here maybe
 
   return tok;
 }
 
+struct Token Scanner_p_next_token(void* s) {
+  struct Scanner *scanner = (struct Scanner*) s;
+  return Scanner_next(scanner);
+}
+
+int Scanner_p_get_lineno(void* s) {
+  struct Scanner *scanner = (struct Scanner*) s;
+  return scanner->in->get_lineno(scanner->in->arg);
+}
+
+int Scanner_p_get_column(void* s) {
+  struct Scanner *scanner = (struct Scanner*) s;
+  return scanner->in->get_column(scanner->in->arg);
+}
+
+const char* Scanner_p_get_filepath(void* s) {
+  struct Scanner *scanner = (struct Scanner*) s;
+  return scanner->in->get_filepath(scanner->in->arg);
+}
+
+bool Scanner_p_is_eof(void* s) {
+  struct Scanner *scanner = (struct Scanner*) s;
+  return scanner->in->is_eof(scanner->in->arg);
+}
+
+void Scanner_p_close(void* s) {
+  struct Scanner *scanner = (struct Scanner*) s;
+  scanner->in->close(scanner->in->arg);
+}
+
+struct TokenStream Scanner_to_TokenStream(struct Scanner* scanner) {
+  struct TokenStream stream;
+  stream.arg          = scanner;
+  stream.next_token   = &Scanner_p_next_token;
+  stream.get_lineno   = &Scanner_p_get_lineno;
+  stream.get_filepath = &Scanner_p_get_filepath;
+  stream.is_eof       = &Scanner_p_is_eof;
+  stream.close        = &Scanner_p_close;
+}

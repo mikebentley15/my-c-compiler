@@ -3,6 +3,7 @@
 
 #include "bootstrap.h"
 
+void error(const char *message);
 bool is_prime(int number);
 int next_prime(int a);
 

@@ -1,5 +1,11 @@
 #include "util.h"
 
+void error(const char *message) {
+  puts("Error: ");
+  puts(message);
+  putc('\n');
+}
+
 /** Calculates the next prime number
  *
  * Code taken from StackOverflow:

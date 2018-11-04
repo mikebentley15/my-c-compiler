@@ -2,6 +2,18 @@
 
 #include <stddef.h> // for NULL
 
+bool is_whitspace(char ch) {
+  return ch == ' ' || ch == '\n' || ch == '\t';
+}
+
+bool is_digit(char ch) {
+  return ch >= '0' && ch <= '9';
+}
+
+bool is_letter(char ch) {
+  return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
+}
+
 bool strequal(const char* a, const char* b) {
   return strcompare(a, b) == 0;
 }
