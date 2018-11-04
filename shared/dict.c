@@ -13,7 +13,7 @@ void Dict_init(struct Dict* d, int capacity) {
   d->collisions = 0;
   d->capacity = next_prime(DICT_MULT_FACTOR * capacity);
   d->keys = (const char**) malloc(d->capacity * sizeof(const char*));
-  d->vals = (const char**) malloc(d->capacity * sizeof(const char*));
+  d->vals = (void**) malloc(d->capacity * sizeof(void*));
   Dict_clear(d);
 }
 
@@ -65,7 +65,7 @@ int Dict_private_next_idx(int capacity, int idx) {
   return (idx + 1) % capacity;
 }
 
-void Dict_set(struct Dict* d, const char* key, const char* val) {
+void Dict_set(struct Dict* d, const char* key, void* val) {
   int idx = djb2_hash(key) % d->capacity;
   int current_idx = Dict_private_next_idx(d->capacity, idx);
   if (d->keys[idx] == NULL) {
@@ -95,9 +95,9 @@ bool Dict_contains(struct Dict* d, const char* key) {
   return Dict_at(d, key) != NULL;
 }
 
-const char* Dict_at(struct Dict* d, const char* key) {
+void* Dict_at(struct Dict* d, const char* key) {
   int idx = djb2_hash(key) % d->capacity;
-  const char* value;
+  void* value;
   int current_idx = Dict_private_next_idx(d->capacity, idx);
   if (d->keys[idx] == NULL) {
     value = NULL;
