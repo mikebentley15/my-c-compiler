@@ -2,7 +2,7 @@
 
 #include <stddef.h> // for NULL
 
-bool is_whitspace(char ch) {
+bool is_whitespace(char ch) {
   return ch == ' ' || ch == '\n' || ch == '\t';
 }
 

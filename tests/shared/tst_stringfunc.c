@@ -2,15 +2,69 @@
 #include "test_harness.c"
 
 void tst_is_whitespace() {
-  test_assert_msg(false, "tst_is_whitespace: unimplemented");
+  bool expected[128];
+  int i = 0;
+  while (i < 128) {
+    expected[i] = false;
+    i++;
+  }
+  expected[(int)' ']  = true;
+  expected[(int)'\n'] = true;
+  expected[(int)'\t'] = true;
+
+  i = 0;
+  while (i < 128) {
+    test_assert_msg(is_whitespace((char) i) == expected[i],
+        "tst_is_whitespace: i == expected[i]");
+    i++;
+  }
 }
 
 void tst_is_digit() {
-  test_assert_msg(false, "tst_is_digit: unimplemented");
+  bool expected[128];
+  int i = 0;
+  while (i < 128) {
+    expected[i] = false;
+    i++;
+  }
+  i = (int)'0';
+  while (i <= (int)'9') {
+    expected[i] = true;
+    i++;
+  }
+
+  i = 0;
+  while (i < 128) {
+    test_assert_msg(is_digit((char) i) == expected[i],
+        "tst_is_digit: i == expected[i]");
+    i++;
+  }
 }
 
 void tst_is_letter() {
-  test_assert_msg(false, "tst_is_letter: unimplemented");
+  bool expected[128];
+  int i = 0;
+  while (i < 128) {
+    expected[i] = false;
+    i++;
+  }
+  i = (int)'a';
+  while (i <= (int)'z') {
+    expected[i] = true;
+    i++;
+  }
+  i = (int)'A';
+  while (i <= (int)'Z') {
+    expected[i] = true;
+    i++;
+  }
+
+  i = 0;
+  while (i < 128) {
+    test_assert_msg(is_letter((char) i) == expected[i],
+        "tst_is_digit: i == expected[i]");
+    i++;
+  }
 }
 
 void tst_strequal() {

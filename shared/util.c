@@ -1,9 +1,11 @@
 #include "util.h"
 
+#include <stdio.h>
+
 void error(const char *message) {
-  puts("Error: ");
-  puts(message);
-  putc('\n');
+  fputs("Error: ", stderr);
+  fputs(message, stderr);
+  fputc('\n', stderr);
 }
 
 /** Calculates the next prime number
