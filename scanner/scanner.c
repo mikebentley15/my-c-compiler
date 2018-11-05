@@ -1,6 +1,7 @@
 #include "scanner.h"
 #include "util.h"
 #include "stringfunc.h"
+#include "charstream.h"
 
 #include <stdio.h>
 
@@ -21,9 +22,13 @@ char expand_escape_character(char code) {
   else if (code == 'v')  { expanded = '\v'; }
   else {
     error("Escape sequence not recognized: \\");
-    putc(code);
+    fputc(code, stderr);
   }
   return expanded;
+}
+
+void local_Scanner_keepchar(struct Scanner* scanner, char ch) {
+  Str_append(&(scanner->tok_buf), ch);
 }
 
 void local_Scanner_nextchar(struct Scanner* scanner) {
@@ -31,13 +36,9 @@ void local_Scanner_nextchar(struct Scanner* scanner) {
     scanner->next = '\0';
   } else {
     local_Scanner_keepchar(scanner, scanner->next);
-    scanner->next = CharStream_readchar(scanner->in);
-    scanner->is_eof = CharStream_is_eof(scanner->in);
+    scanner->next = CS_get_char(scanner->in);
+    scanner->is_eof = CS_is_eof(scanner->in);
   }
-}
-
-void local_Scanner_keepchar(struct Scanner* scanner, char ch) {
-  Str_append(&(scanner->tok_buf), ch);
 }
 
 void local_Scanner_buf_rm_one(struct Scanner* scanner) {
@@ -71,7 +72,7 @@ bool local_Scanner_character_literal(struct Scanner* scanner) {
   return is_character_literal;
 }
 
-bool local_Scanner_int_literal(struct Scanner* scanner) {
+bool local_Scanner_int_literal(struct Scanner* scanner, int* intval) {
   bool is_int_literal = false;
   int value = 0;
   if (scanner->next == '0') {
@@ -84,14 +85,14 @@ bool local_Scanner_int_literal(struct Scanner* scanner) {
       error("A multi-digit number cannot start with zero");
       puts(scanner->tok_buf.data);
     }
-    scanner->int_val = 0;
+    *intval = 0;
   } else if (is_digit(scanner->next)) { // nonzero
     is_int_literal = true;
     while (!scanner->is_eof && is_digit(scanner->next)) {
       value = 10 * value + (scanner->next - '0');
       local_Scanner_nextchar(scanner);
     }
-    scanner->int_val = value;
+    *intval = value;
   }
   return is_int_literal;
 }
@@ -145,7 +146,7 @@ void Scanner_init(struct Scanner* scanner, struct CharStream* stream) {
   }
   scanner->in = stream;
   scanner->is_init = true;
-  scanner->is_eof = CharStream_is_eof(scanner->in);
+  scanner->is_eof = CS_is_eof(scanner->in);
   Str_init(&(scanner->tok_buf));
   local_Scanner_clearbuf(scanner);
   local_Scanner_nextchar(scanner);
@@ -167,8 +168,8 @@ struct Token Scanner_next(struct Scanner* scanner) {
   struct Token tok;
   local_Scanner_clearbuf(scanner);
   tok.type = TT_ERROR;
-  tok.str_val = scanner->tok_buf.data;
-  tok.int_val = 0;
+  tok.strval = scanner->tok_buf.data;
+  tok.intval = 0;
 
   if (scanner->is_eof) {
     tok.type = TT_EOF;
@@ -345,7 +346,7 @@ struct Token Scanner_next(struct Scanner* scanner) {
       tok.type = TT_BOOLEAN_OR;
     } else if (scanner->next == '=') {
       local_Scanner_nextchar(scanner);
-      tok.type = TT_BIWISE_OR_EQUALS;
+      tok.type = TT_BITWISE_OR_EQUALS;
     } else {
       tok.type = TT_BITWISE_OR;
     }
@@ -368,7 +369,7 @@ struct Token Scanner_next(struct Scanner* scanner) {
     tok.type = TT_QUESTION;
   } else if (local_Scanner_character_literal(scanner)) {
     tok.type = TT_CHARACTER_LITERAL;
-  } else if (local_Scanner_int_literal(scanner)) {
+  } else if (local_Scanner_int_literal(scanner, &(tok.intval))) {
     tok.type = TT_INT_LITERAL;
   } else if (local_Scanner_string_literal(scanner)) {
     tok.type = TT_STRING_LITERAL;
@@ -429,4 +430,5 @@ struct TokenStream Scanner_to_TokenStream(struct Scanner* scanner) {
   stream.get_filepath = &Scanner_p_get_filepath;
   stream.is_eof       = &Scanner_p_is_eof;
   stream.close        = &Scanner_p_close;
+  return stream;
 }

@@ -1,6 +1,8 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+#include "bootstrap.h"
+
 enum TokenType {
   TT_ERROR = 0,                    // not a valid token (default value)
 
