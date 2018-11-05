@@ -1,19 +1,22 @@
 CC           := clang
-DEPDIR       := ../../shared
-BOOTSTRAPDIR := ../../bootstrap
-TESTHARNESS  := ../test_harness.c
+TOPLEVEL     := ../..
+DEPDIRS      :=
+DEPDIRS      += $(TOPLEVEL)/shared
+BOOTSTRAPDIR := $(TOPLEVEL)/bootstrap
+TESTHARNESS  := $(TOPLEVEL)/tests/test_harness.c
 CFLAGS       :=
 CFLAGS       += -g
-CFLAGS       += -I..
-CFLAGS       += -I$(DEPDIR)
+CFLAGS       += -I$(TOPLEVEL)
+CFLAGS       += -I$(dir $(TESTHARNESS))
+CFLAGS       += $(addprefix -I,$(DEPDIRS))
 CFLAGS       += -I$(BOOTSTRAPDIR)
 SOURCE       := $(wildcard *.c)
 TARGETS      := $(SOURCE:%.c=%)
 RUN_TARGETS  := $(TARGETS:%=run__%)
 
 DEPS         :=
-DEPS         += $(wildcard $(DEPDIR)/*.c)
-DEPS         += $(wildcard $(DEPDIR)/*.h)
+DEPS         += $(foreach d,$(DEPDIRS),$(wildcard $(d)/*.c))
+DEPS         += $(foreach d,$(DEPDIRS),$(wildcard $(d)/*.h))
 DEPS         += $(wildcard $(BOOTSTRAPDIR)/*.c)
 DEPS         += $(wildcard $(BOOTSTRAPDIR)/*.h)
 DEPS         += $(TESTHARNESS)
