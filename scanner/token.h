@@ -4,8 +4,6 @@
 enum TokenType {
   TT_ERROR = 0,                    // not a valid token (default value)
 
-  TT_EOF,                          // end of file
-
   // All keywords
   TT_KEYWORD_BEGIN,
 
@@ -135,14 +133,23 @@ enum TokenType {
   TT_FALSE_LITERAL,                // false
   TT_LITERAL_VALUES_END,
 
-  // comments are eaten
-  // TT_LINE_COMMENT,              // "//" {printableCharacter} newline
-  // TT_MULTILINE_COMMENT,         // "/*" {printableCharacter | newline} "*/"
-
-  // whitespace is eaten
-  // TT_WHITESPACE,                // " " | tab | newline
-
   TT_OPERATOR_END,
+
+
+  TT_OTHER_BEGIN,                  // not keyword, not operator, just other...
+
+  TT_COMMENT_BEGIN,
+  // comments
+  TT_LINE_COMMENT,                 // "//" {printableCharacter} newline
+  TT_MULTILINE_COMMENT,            // "/*" {printableCharacter | newline} "*/"
+  TT_COMMENT_END,
+
+  TT_WHITESPACE,                   // " " | tab
+  TT_NEWLINE,                      // end of line (i.e. "\n")
+  TT_EOF,                          // end of file (i.e. EOF)
+  TT_LINE_CONTINUATION,            // line continuation (i.e. "\\\n")
+
+  TT_OTHER_END,
 };
 
 // letter             = "A" | ... | "Z" | "a" | ... | "z"

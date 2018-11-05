@@ -170,22 +170,35 @@ struct Token Scanner_next(struct Scanner* scanner) {
   tok.str_val = scanner->tok_buf.data;
   tok.int_val = 0;
 
-  // eat whitespace
-  while (!scanner->is_eof && is_whitespace(scanner->next)) {
+  if (scanner->is_eof) {
+    tok.type = TT_EOF;
+  } else if (scanner->next == '\n') {
     local_Scanner_nextchar(scanner);
-    local_Scanner_clearbuf(scanner);
-  }
-
-  // eat comments
-  bool already_found_token = false;
-  if (scanner->next == '/') {
+    tok.type = TT_NEWLINE;
+  } else if (scanner->next == '\\') {
+    local_Scanner_nextchar(scanner);
+    if (scanner->next == '\n') {
+      local_Scanner_nextchar(scanner);
+      tok.type = TT_LINE_CONTINUATION;
+    } else {
+      error("A char \\ found not at the end of the line");
+      tok.type = TT_ERROR;
+    }
+  } else if (is_whitespace(scanner->next)) {
+    while (!scanner->is_eof && is_whitespace(scanner->next) &&
+           scanner->next != '\n')
+    {
+      local_Scanner_nextchar(scanner);
+    }
+    tok.type = TT_WHITESPACE;
+  } else if (scanner->next == '/') {
     local_Scanner_nextchar(scanner);
     if (scanner->next == '/') {
+      // line comment
       while (scanner->next != '\n' && !scanner->is_eof) {
         local_Scanner_nextchar(scanner);
-        local_Scanner_clearbuf(scanner);
       }
-      local_Scanner_nextchar(scanner);
+      tok.type = TT_LINE_COMMENT;
     } else if (scanner->next == '*') {
       bool should_continue = true;
       local_Scanner_nextchar(scanner);
@@ -201,10 +214,10 @@ struct Token Scanner_next(struct Scanner* scanner) {
         }
         local_Scanner_nextchar(scanner);
       }
+      tok.type = TT_MULTILINE_COMMENT;
     } else if (scanner->is_eof) {
       error("Unrecognized token '/' at the end of file");
     } else {
-      already_found_token = true;
       // handle the division operator
       if (scanner->next == '=') {
         local_Scanner_nextchar(scanner);
@@ -213,12 +226,6 @@ struct Token Scanner_next(struct Scanner* scanner) {
         tok.type = TT_DIVIDE;
       }
     }
-  }
-
-  if (already_found_token) {
-    // do nothing, already captured TT_DIVIDE or TT_DIVIDE_EQUALS
-  } if (scanner->is_eof) {
-    tok.type = TT_EOF;
   } else if (scanner->next == '#') {
     local_Scanner_nextchar(scanner);
     tok.type = TT_POUND;
