@@ -33,6 +33,9 @@ void local_Scanner_keepchar(struct Scanner* scanner, char ch) {
 
 void local_Scanner_nextchar(struct Scanner* scanner) {
   if (scanner->is_eof) {
+    if (scanner->next != '\0') {
+      local_Scanner_keepchar(scanner, scanner->next);
+    }
     scanner->next = '\0';
   } else {
     local_Scanner_keepchar(scanner, scanner->next);
@@ -141,27 +144,18 @@ bool local_Scanner_identifier(struct Scanner* scanner) {
 // local functions end
 
 void Scanner_init(struct Scanner* scanner, struct CharStream* stream) {
-  if (scanner->is_init) {
-    Scanner_close(scanner);
-  }
   scanner->in = stream;
-  scanner->is_init = true;
   scanner->is_eof = CS_is_eof(scanner->in);
   Str_init(&(scanner->tok_buf));
-  local_Scanner_clearbuf(scanner);
   local_Scanner_nextchar(scanner);
+  local_Scanner_clearbuf(scanner);
 }
 
 void Scanner_close(struct Scanner* scanner) {
   scanner->in = NULL;
-  scanner->is_init = false;
-  scanner->is_eof = false;
+  scanner->is_eof = true;
   scanner->next = '\0';
   Str_del(&(scanner->tok_buf));
-}
-
-bool Scanner_is_eof(struct Scanner* scanner) {
-  return scanner->is_eof;
 }
 
 struct Token Scanner_next(struct Scanner* scanner) {
@@ -171,7 +165,7 @@ struct Token Scanner_next(struct Scanner* scanner) {
   tok.strval = scanner->tok_buf.data;
   tok.intval = 0;
 
-  if (scanner->is_eof) {
+  if (scanner->is_eof && scanner->next == '\0') {
     tok.type = TT_EOF;
   } else if (scanner->next == '\n') {
     local_Scanner_nextchar(scanner);
@@ -186,9 +180,7 @@ struct Token Scanner_next(struct Scanner* scanner) {
       tok.type = TT_ERROR;
     }
   } else if (is_whitespace(scanner->next)) {
-    while (!scanner->is_eof && is_whitespace(scanner->next) &&
-           scanner->next != '\n')
-    {
+    while (is_whitespace(scanner->next) && scanner->next != '\n') {
       local_Scanner_nextchar(scanner);
     }
     tok.type = TT_WHITESPACE;
@@ -230,6 +222,9 @@ struct Token Scanner_next(struct Scanner* scanner) {
   } else if (scanner->next == '#') {
     local_Scanner_nextchar(scanner);
     tok.type = TT_POUND;
+  } else if (scanner->next == ';') {
+    local_Scanner_nextchar(scanner);
+    tok.type = TT_SEMICOLON;
   } else if (scanner->next == '+') {
     local_Scanner_nextchar(scanner);
     if (scanner->next == '+') {

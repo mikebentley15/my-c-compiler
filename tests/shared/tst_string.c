@@ -227,7 +227,6 @@ void tst_Str_set() {
   Str_del(&s);
 }
 
-
 int main(void) {
   tst_Str_init();
   tst_Str_del();

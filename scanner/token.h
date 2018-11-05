@@ -150,6 +150,7 @@ enum TokenType {
   TT_NEWLINE,                      // end of line (i.e. "\n")
   TT_EOF,                          // end of file (i.e. EOF)
   TT_LINE_CONTINUATION,            // line continuation (i.e. "\\\n")
+  TT_SEMICOLON,                    // ';'
 
   TT_OTHER_END,
 };
@@ -178,5 +179,12 @@ struct TokenStream {
   bool         (*is_eof)(void*);
   void         (*close)(void*);
 };
+
+struct Token TS_next_token(struct TokenStream* ts);
+int          TS_get_lineno(struct TokenStream* ts);
+int          TS_get_column(struct TokenStream* ts);
+const char*  TS_get_filepath(struct TokenStream* ts);
+bool         TS_is_eof(struct TokenStream* ts);
+void         TS_close(struct TokenStream* ts);
 
 #endif // TOKEN_H
