@@ -1,4 +1,4 @@
-#include "keywordfilter.h"
+#include "keywordmapper.h"
 #include "util.h"
 
 bool p_isUnsupported(enum TokenType type) {
@@ -8,7 +8,7 @@ bool p_isUnsupported(enum TokenType type) {
           type <= TT_PP_UNSUPPORTED_END);
 }
 
-void KeywordFilter_init(struct KeywordFilter *f, struct TokenStream *stream) {
+void KeywordMapper_init(struct KeywordMapper *f, struct TokenStream *stream) {
   f->in     = stream;
   f->map    = (struct Dict*) malloc(sizeof(struct Dict));
   f->pp_map = (struct Dict*) malloc(sizeof(struct Dict));
@@ -66,14 +66,14 @@ void KeywordFilter_init(struct KeywordFilter *f, struct TokenStream *stream) {
   Dict_set(f->pp_map, "undef"  , (void*) TT_PP_UNDEF  );
 }
 
-void KeywordFilter_del(struct KeywordFilter *f) {
+void KeywordMapper_del(struct KeywordMapper *f) {
   Dict_del(f->map);
   Dict_del(f->pp_map);
   free(f->map);
   free(f->pp_map);
 }
 
-struct Token KeywordFilter_next(struct KeywordFilter *f) {
+struct Token KeywordMapper_next(struct KeywordMapper *f) {
   struct Token tok = f->in->next_token(f->in->arg);
   enum TokenType type = TT_ERROR;
   if (tok->type == TT_IDENTIFIER) {
@@ -111,46 +111,46 @@ struct Token KeywordFilter_next(struct KeywordFilter *f) {
   return tok;
 }
 
-struct Token KeywordFilter_p_next_token(void *filter) {
-  struct KeywordFilter *f = (struct KeywordFilter*) filter;
-  return KeywordFilter_next(f);
+struct Token KeywordMapper_p_next_token(void *filter) {
+  struct KeywordMapper *f = (struct KeywordMapper*) filter;
+  return KeywordMapper_next(f);
 }
 
-int KeywordFilter_p_get_lineno(void *filter) {
-  struct KeywordFilter *f = (struct KeywordFilter*) filter;
+int KeywordMapper_p_get_lineno(void *filter) {
+  struct KeywordMapper *f = (struct KeywordMapper*) filter;
   return f->in->get_lineno(f->in->arg);
 }
 
-int KeywordFilter_p_get_column(void *filter) {
-  struct KeywordFilter *f = (struct KeywordFilter*) filter;
+int KeywordMapper_p_get_column(void *filter) {
+  struct KeywordMapper *f = (struct KeywordMapper*) filter;
   return f->in->get_column(f->in->arg);
 }
 
-const char* KeywordFilter_p_get_filepath(void *filter) {
-  struct KeywordFilter *f = (struct KeywordFilter*) filter;
+const char* KeywordMapper_p_get_filepath(void *filter) {
+  struct KeywordMapper *f = (struct KeywordMapper*) filter;
   return f->in->get_filepath(f->in->arg);
 }
 
-bool KeywordFilter_p_is_eof(void *filter) {
-  struct KeywordFilter *f = (struct KeywordFilter*) filter;
+bool KeywordMapper_p_is_eof(void *filter) {
+  struct KeywordMapper *f = (struct KeywordMapper*) filter;
   return f->in->is_eof(f->in->arg);
 }
 
-void KeywordFilter_p_close(void *filter) {
-  struct KeywordFilter *f = (struct KeywordFilter*) filter;
+void KeywordMapper_p_close(void *filter) {
+  struct KeywordMapper *f = (struct KeywordMapper*) filter;
   return f->in->close(f->in->arg);
 }
 
-struct TokenStream KeywordFilter_to_TokenStream(struct KeywordFilter *f) {
+struct TokenStream KeywordMapper_to_TokenStream(struct KeywordMapper *f) {
   struct TokenStream stream;
 
   stream->arg          = f;
-  stream->next_token   = &KeywordFilter_p_next_token;
-  stream->get_lineno   = &KeywordFilter_p_get_lineno;
-  stream->get_column   = &KeywordFilter_p_get_column;
-  stream->get_filepath = &KeywordFilter_p_get_filepath;
-  stream->is_eof       = &KeywordFilter_p_is_eof;
-  stream->close        = &KeywordFilter_p_close;
+  stream->next_token   = &KeywordMapper_p_next_token;
+  stream->get_lineno   = &KeywordMapper_p_get_lineno;
+  stream->get_column   = &KeywordMapper_p_get_column;
+  stream->get_filepath = &KeywordMapper_p_get_filepath;
+  stream->is_eof       = &KeywordMapper_p_is_eof;
+  stream->close        = &KeywordMapper_p_close;
 
   return stream;
 }
