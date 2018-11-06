@@ -55,13 +55,20 @@ void TSQ_push(struct TokenStreamQueue* tsq, struct Token tok) {
 }
 
 struct Token TSQ_pop(struct TokenStreamQueue* tsq) {
-  struct Token *htok = LL_pop_tail(&(tsq->q));
+  struct Token *htok;
   struct Token tok;
   int i;
-  tok.type = htok->type;
-  tok.strval = htok->strval;
-  tok.intval = htok->intval;
-  free(htok);
+  if (tsq->q.size > 0) {
+    htok = LL_pop_tail(&(tsq->q));
+    tok.type = htok->type;
+    tok.strval = htok->strval;
+    tok.intval = htok->intval;
+    free(htok);
+  } else {
+    tok.type = TT_EOF;
+    tok.strval = "";
+    tok.intval = 0;
+  }
 
   // capture line and column information
   if (tok.type == TT_NEWLINE) {
