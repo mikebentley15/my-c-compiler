@@ -2,6 +2,7 @@
 #define TOKEN_H
 
 #include "bootstrap.h"
+#include "linkedlist.h"
 
 enum TokenType {
   TT_ERROR = 0,                    // not a valid token (default value)
@@ -187,5 +188,19 @@ int          TS_get_column(struct TokenStream* ts);
 const char*  TS_get_filepath(struct TokenStream* ts);
 bool         TS_is_eof(struct TokenStream* ts);
 void         TS_close(struct TokenStream* ts);
+
+struct TokenStreamQueue {
+  struct LinkedList q;
+  int lineno;
+  int column;
+};
+
+void         TSQ_init (struct TokenStreamQueue* tsq);
+void         TSQ_close(struct TokenStreamQueue* tsq);
+void         TSQ_clear(struct TokenStreamQueue* tsq);
+void         TSQ_push (struct TokenStreamQueue* tsq, struct Token tok);
+struct Token TSQ_pop  (struct TokenStreamQueue* tsq);
+
+struct TokenStream TSQ_to_TS(struct TokenStreamQueue* tsq);
 
 #endif // TOKEN_H

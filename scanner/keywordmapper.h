@@ -13,7 +13,7 @@ struct KeywordMapper {
 
 void KeywordMapper_init(struct KeywordMapper *f, struct TokenStream *stream);
 void KeywordMapper_del(struct KeywordMapper *f);
-struct Token KeywordMapper_next(struct KeywordMapper *f, struct Token tok);
+struct Token KeywordMapper_next(struct KeywordMapper *f);
 
 struct TokenStream KeywordMapper_to_TokenStream(struct KeywordMapper *f);
 

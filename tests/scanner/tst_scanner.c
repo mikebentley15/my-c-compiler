@@ -13,6 +13,7 @@ int fputc_stub(int ch, FILE *f) { return ch; }
 #include "stringfunc.c"
 #include "stringstream.c"
 #include "token.c"
+#include "linkedlist.c"
 #include "util.c"
 
 #undef fputs
