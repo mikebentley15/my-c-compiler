@@ -56,6 +56,7 @@ bool local_Scanner_character_literal(struct Scanner* scanner) {
   bool is_character_literal = false;
   char literal = '\0';
   if (scanner->next == '\'') {
+    is_character_literal = true;
     local_Scanner_nextchar(scanner);
     if (scanner->next == '\\') {
       local_Scanner_nextchar(scanner);
@@ -130,10 +131,9 @@ bool local_Scanner_identifier(struct Scanner* scanner) {
   bool is_identifier = false;
   if (scanner->next == '_' || is_letter(scanner->next)) {
     is_identifier = true;
-    while (!scanner->is_eof &&
-           (scanner->next == '_' ||
-            is_letter(scanner->next) ||
-            is_digit(scanner->next)))
+    while (scanner->next == '_' ||
+           is_letter(scanner->next) ||
+           is_digit(scanner->next))
     {
       local_Scanner_nextchar(scanner);
     }
@@ -362,8 +362,12 @@ struct Token Scanner_next(struct Scanner* scanner) {
   } else if (scanner->next == '?') {
     local_Scanner_nextchar(scanner);
     tok.type = TT_QUESTION;
+  } else if (scanner->next == ',') {
+    local_Scanner_nextchar(scanner);
+    tok.type = TT_COMMA;
   } else if (local_Scanner_character_literal(scanner)) {
     tok.type = TT_CHARACTER_LITERAL;
+    tok.intval = (int)tok.strval[0];
   } else if (local_Scanner_int_literal(scanner, &(tok.intval))) {
     tok.type = TT_INT_LITERAL;
   } else if (local_Scanner_string_literal(scanner)) {

@@ -151,6 +151,7 @@ enum TokenType {
   TT_EOF,                          // end of file (i.e. EOF)
   TT_LINE_CONTINUATION,            // line continuation (i.e. "\\\n")
   TT_SEMICOLON,                    // ';'
+  TT_COMMA,                        // ','
 
   TT_OTHER_END,
 };
