@@ -54,6 +54,7 @@ void KeywordMapper_init(struct KeywordMapper *f, struct TokenStream *stream) {
   Dict_set(f->map, "true"    , (void*) TT_TRUE_LITERAL );
   Dict_set(f->map, "typedef" , (void*) TT_TYPEDEF      );
   Dict_set(f->map, "union"   , (void*) TT_UNION        );
+  Dict_set(f->map, "unsigned", (void*) TT_UNSIGNED     );
   Dict_set(f->map, "void"    , (void*) TT_VOID         );
   Dict_set(f->map, "volatile", (void*) TT_VOLATILE     );
   Dict_set(f->map, "while"   , (void*) TT_WHILE        );
@@ -74,6 +75,9 @@ void KeywordMapper_del(struct KeywordMapper *f) {
   Dict_del(f->pp_map);
   free(f->map);
   free(f->pp_map);
+  f->in = NULL;
+  f->map = NULL;
+  f->pp_map = NULL;
 }
 
 struct Token KeywordMapper_next(struct KeywordMapper *f) {

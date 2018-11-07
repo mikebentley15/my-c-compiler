@@ -168,7 +168,7 @@ enum TokenType {
 
 struct Token {
   enum TokenType  type;
-  char*           strval;
+  const char*     strval;
   int             intval;
 };
 
