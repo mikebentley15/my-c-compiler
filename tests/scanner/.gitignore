@@ -1,3 +1,4 @@
 tst_keywordmapper
 tst_scanner
 tst_token
+tst_tokeneater
