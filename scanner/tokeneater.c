@@ -26,32 +26,32 @@ struct Token TokenEater_next(struct TokenEater *f) {
 }
 
 struct Token TokenEater_p_next_token(void* arg) {
-  struct TokenEater *eater;
+  struct TokenEater *eater = (struct TokenEater*) arg;
   return TokenEater_next(eater);
 }
 
 int TokenEater_p_get_lineno(void* arg) {
-  struct TokenEater *eater;
+  struct TokenEater *eater = (struct TokenEater*) arg;
   return TS_get_lineno(eater->in);
 }
 
 int TokenEater_p_get_column(void* arg) {
-  struct TokenEater *eater;
+  struct TokenEater *eater = (struct TokenEater*) arg;
   return TS_get_column(eater->in);
 }
 
 const char* TokenEater_p_get_filepath(void* arg) {
-  struct TokenEater *eater;
+  struct TokenEater *eater = (struct TokenEater*) arg;
   return TS_get_filepath(eater->in);
 }
 
 bool TokenEater_p_is_eof(void* arg) {
-  struct TokenEater *eater;
+  struct TokenEater *eater = (struct TokenEater*) arg;
   return TS_is_eof(eater->in);
 }
 
 void TokenEater_p_close(void* arg) {
-  struct TokenEater *eater;
+  struct TokenEater *eater = (struct TokenEater*) arg;
   return TS_close(eater->in);
 }
 
