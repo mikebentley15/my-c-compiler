@@ -5,14 +5,16 @@
 #include "util.c"
 #include "stringfunc.c"
 
+// All of the Set_*() functions are tested by the SSet functions
+
 void tst_SSet_init() {
   struct StringSet set;
   SSet_init(&set, 10);
 
-  test_assert_msg(set.data != NULL, "tst_SSet_init: data != NULL");
-  test_assert_msg(set.size == 0, "tst_SSet_init: size == 0");
-  test_assert_msg(set.capacity >= 10, "tst_SSet_init: capacity >= 10");
-  test_assert_msg(set.collisions == 0, "tst_SSet_init: collisions == 0");
+  test_assert_msg(set.s.data != NULL, "tst_SSet_init: data != NULL");
+  test_assert_msg(set.s.size == 0, "tst_SSet_init: size == 0");
+  test_assert_msg(set.s.capacity >= 10, "tst_SSet_init: capacity >= 10");
+  test_assert_msg(set.s.collisions == 0, "tst_SSet_init: collisions == 0");
 
   SSet_del(&set);
 }
@@ -21,14 +23,14 @@ void tst_SSet_del() {
   struct StringSet set;
   SSet_init(&set, 10);
 
-  set.size = 10;
-  set.collisions = 1050;
+  set.s.size = 10;
+  set.s.collisions = 1050;
   SSet_del(&set);
 
-  test_assert_msg(set.data == NULL, "tst_SSet_del: data == NULL");
-  test_assert_msg(set.size == 0, "tst_SSet_del: size == 0");
-  test_assert_msg(set.capacity == 0, "tst_SSet_del: capacity == 0");
-  test_assert_msg(set.collisions == 0, "tst_SSet_del: collisions == 0");
+  test_assert_msg(set.s.data == NULL, "tst_SSet_del: data == NULL");
+  test_assert_msg(set.s.size == 0, "tst_SSet_del: size == 0");
+  test_assert_msg(set.s.capacity == 0, "tst_SSet_del: capacity == 0");
+  test_assert_msg(set.s.collisions == 0, "tst_SSet_del: collisions == 0");
 }
 
 void tst_SSet_clear() {
@@ -44,7 +46,7 @@ void tst_SSet_clear() {
       "tst_SSet_clear: hello not in set");
   test_assert_msg(!SSet_contains(&set, "bye"),
       "tst_SSet_clear: bye not in set");
-  test_assert_msg(set.size == 0, "tst_SSet_clear: size == 0");
+  test_assert_msg(set.s.size == 0, "tst_SSet_clear: size == 0");
 
   SSet_del(&set);
 }
@@ -57,8 +59,8 @@ void tst_SSet_add() {
   added = SSet_add(&set, "hello");
 
   test_assert_msg(added, "tst_SSet_add 01: added == true");
-  test_assert_msg(set.size == 1, "tst_SSet_add 01: size == 1");
-  test_assert_msg(set.collisions == 0, "tst_SSet_add 01: collisions == 0");
+  test_assert_msg(set.s.size == 1, "tst_SSet_add 01: size == 1");
+  test_assert_msg(set.s.collisions == 0, "tst_SSet_add 01: collisions == 0");
   test_assert_msg(SSet_contains(&set, "hello"),
       "tst_SSet_add 01: hello in set");
   test_assert_msg(!SSet_contains(&set, "bye"),
@@ -67,8 +69,8 @@ void tst_SSet_add() {
   added = SSet_add(&set, "hello");
 
   test_assert_msg(!added, "tst_SSet_add 02: added == false");
-  test_assert_msg(set.size == 1, "tst_SSet_add 02: size == 1");
-  test_assert_msg(set.collisions == 0, "tst_SSet_add 02: collisions == 0");
+  test_assert_msg(set.s.size == 1, "tst_SSet_add 02: size == 1");
+  test_assert_msg(set.s.collisions == 0, "tst_SSet_add 02: collisions == 0");
   test_assert_msg(SSet_contains(&set, "hello"),
       "tst_SSet_add 02: hello in set");
   test_assert_msg(!SSet_contains(&set, "bye"),
@@ -77,7 +79,7 @@ void tst_SSet_add() {
   added = SSet_add(&set, "bye");
 
   test_assert_msg(added, "tst_SSet_add 03: added == true");
-  test_assert_msg(set.size == 2, "tst_SSet_add 03: size == 2");
+  test_assert_msg(set.s.size == 2, "tst_SSet_add 03: size == 2");
   test_assert_msg(SSet_contains(&set, "hello"),
       "tst_SSet_add 03: hello in set");
   test_assert_msg(SSet_contains(&set, "bye"),
