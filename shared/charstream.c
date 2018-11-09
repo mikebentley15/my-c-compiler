@@ -9,7 +9,6 @@ void  CS_close(struct CharStream* stream) {
   stream->get_filepath = NULL;
   stream->is_eof = NULL;
   stream->close = NULL;
-  stream->is_init = false;
 }
 
 char  CS_get_char(struct CharStream* stream) {

@@ -44,6 +44,22 @@ int strcompare(const char* a, const char* b) {
   return comparison;
 }
 
+int strlen(const char* a) {
+  int i = 0;
+  while (a[i] != '\0') { i++; }
+  return i;
+}
+
+char* strdup(const char* a) {
+  int len = strlen(a);
+  char* copy = (char*) malloc((len + 1) * sizeof(char));
+  while (len >= 0) {
+    copy[len] = a[len];
+    len--;
+  }
+  return copy;
+}
+
 char* to_lowercase(char* str) {
   int i = 0;
   while (str[i] != '\0') {

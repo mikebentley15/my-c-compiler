@@ -11,6 +11,9 @@ bool strequal(const char* a, const char* b);
 bool strgreater(const char* a, const char* b);
 int strcompare(const char* a, const char* b);
 
+int   strlen(const char* a);
+char* strdup(const char* a);
+
 char* to_lowercase(char* str);
 char* to_uppercase(char* str);
 

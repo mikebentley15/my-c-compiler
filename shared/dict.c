@@ -8,6 +8,45 @@
 
 #define DICT_MULT_FACTOR 4
 
+int Dict_private_next_idx(int capacity, int idx) {
+  // simply the next index, but in a circular buffer
+  return (idx + 1) % capacity;
+}
+
+int Dict_private_find(struct Dict* d, const char* key) {
+  int idx = djb2_hash(key) % d->capacity;
+  int current_idx = Dict_private_next_idx(d->capacity, idx);
+  if (d->keys[idx] == NULL) {
+    // found idx
+  } else if (strequal(d->keys[idx], key)) {
+    // found idx
+  } else {
+    while (current_idx != idx) {
+      d->collisions++;
+      if (d->keys[current_idx] == NULL) {
+        // found idx
+        break;
+      } else if (strequal(d->keys[current_idx], key)) {
+        // found idx
+        break;
+      }
+      current_idx = Dict_private_next_idx(d->capacity, current_idx);
+    }
+  }
+  return idx;
+}
+
+// we would still delete the key when removed
+// this is called if we already own key
+void Dict_private_set_nocopy(struct Dict* d, const char* key, void* val) {
+  int idx = Dict_private_find(d, key);
+  if (d->key[idx] == NULL) {
+    d->keys[idx] = key;
+    d->size++;
+  }
+  d->vals[idx] = val;
+}
+
 void Dict_init(struct Dict* d, int capacity) {
   d->size = 0;
   d->collisions = 0;
@@ -23,7 +62,10 @@ void Dict_resize(struct Dict* d, int capacity) {
   int i = 0;
   while (i < d->capacity) {
     if (d->keys[i] != NULL) {
-      Dict_set(&other, d->keys[i], d->vals[i]);
+      // move ownership of keys over
+      Dict_private_set_nocopy(&other, d->keys[i], d->vals[i]);
+      d->keys[i] = NULL;
+      d->vals[i] = NULL;
     }
     i++;
   }
@@ -41,6 +83,7 @@ void Dict_resize(struct Dict* d, int capacity) {
 }
 
 void Dict_del(struct Dict* d) {
+  Dict_clear(d);
   free(d->keys);
   free(d->vals);
   d->keys = NULL;
@@ -53,68 +96,31 @@ void Dict_del(struct Dict* d) {
 void Dict_clear(struct Dict* d) {
   int i = 0;
   while (i < d->capacity) {
-    d->keys[i] = NULL;
-    d->vals[i] = NULL;
+    if (d->keys[i] != NULL) {
+      free(d->keys[i]);
+      d->keys[i] = NULL;
+      d->vals[i] = NULL;
+    }
     i++;
   }
   d->size = 0;
 }
 
-int Dict_private_next_idx(int capacity, int idx) {
-  // simply the next index, but in a circular buffer
-  return (idx + 1) % capacity;
-}
-
 void Dict_set(struct Dict* d, const char* key, void* val) {
-  int idx = djb2_hash(key) % d->capacity;
-  int current_idx = Dict_private_next_idx(d->capacity, idx);
+  int idx = Dict_private_find(d, key);
   if (d->keys[idx] == NULL) {
-    d->keys[idx] = key;
-    d->vals[idx] = val;
+    d->keys[idx] = strdup(key);
     d->size++;
-  } else if (strequal(d->keys[idx], key)) {
-    d->vals[idx] = val;
-  } else {
-    while (current_idx != idx) {
-      d->collisions++;
-      if (d->keys[current_idx] == NULL) {
-        d->keys[current_idx] = key;
-        d->vals[current_idx] = val;
-        d->size++;
-        break;
-      } else if (strequal(d->keys[current_idx], key)) {
-        d->vals[current_idx] = val;
-        break;
-      }
-      current_idx = Dict_private_next_idx(d->capacity, current_idx);
-    }
   }
+  d->vals[idx] = val;
 }
 
 bool Dict_contains(struct Dict* d, const char* key) {
-  return Dict_at(d, key) != NULL;
+  int idx = Dict_private_find(d, key);
+  return d->keys[idx] != NULL;
 }
 
 void* Dict_at(struct Dict* d, const char* key) {
-  int idx = djb2_hash(key) % d->capacity;
-  void* value;
-  int current_idx = Dict_private_next_idx(d->capacity, idx);
-  if (d->keys[idx] == NULL) {
-    value = NULL;
-  } else if (strequal(d->keys[idx], key)) {
-    value = d->vals[idx];
-  } else {
-    while (current_idx != idx) {
-      d->collisions++;
-      if (d->keys[current_idx] == NULL) {
-        value = NULL;
-        break;
-      } else if (strequal(d->keys[current_idx], key)) {
-        value = d->vals[current_idx];
-        break;
-      }
-      current_idx = Dict_private_next_idx(d->capacity, current_idx);
-    }
-  }
-  return value;
+  int idx = Dict_private_find(d, key);
+  return d->vals[idx];
 }

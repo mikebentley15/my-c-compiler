@@ -18,6 +18,10 @@ void  FS_close(struct FileStream* stream) {
   stream->is_init = false;
 }
 
+bool  FS_is_valid(struct FileStream* stream) {
+  return stream->file != NULL;
+}
+
 bool  FS_is_eof(struct FileStream* stream) {
   return feof(stream->file);
 }

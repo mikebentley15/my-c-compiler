@@ -5,7 +5,6 @@
 #include "bootstrap.h"
 
 struct StringStream {
-  bool is_init;
   const char* content;
   int lineno;
   int column;

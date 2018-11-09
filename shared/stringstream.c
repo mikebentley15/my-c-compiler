@@ -3,19 +3,18 @@
 #include <stddef.h> // for NULL
 
 void SS_init(struct StringStream* stream, const char* content) {
-  stream->content = content;
+  stream->content = strdup(content);
   stream->lineno  = 1;
   stream->column  = 0;
   stream->index   = 0;
-  stream->is_init = true;
 }
 
 void SS_close(struct StringStream* stream) {
+  free(stream->content);
   stream->content = NULL;
   stream->lineno  = 0;
   stream->column  = 0;
   stream->index   = 0;
-  stream->is_init = false;
 }
 
 bool SS_is_eof(struct StringStream* stream) {
@@ -52,7 +51,7 @@ int         SS_private_CS_get_column(void* stream) {
 }
 
 const char* SS_private_CS_get_filepath(void* stream) {
-  return "<content>";
+  return "<StringStream>";
 }
 
 bool        SS_private_CS_is_eof(void* stream) {
@@ -74,7 +73,6 @@ struct CharStream SS_to_CharStream(struct StringStream* stream) {
   cs.get_filepath = &SS_private_CS_get_filepath;
   cs.is_eof       = &SS_private_CS_is_eof;
   cs.close        = &SS_private_CS_close;
-  cs.is_init      = true;
   return cs;
 }
 

@@ -17,6 +17,7 @@ struct FileStream {
 
 void  FS_init(struct FileStream* stream, const char* filepath);
 void  FS_close(struct FileStream* stream);
+bool  FS_is_valid(struct FileStream* stream);
 bool  FS_is_eof(struct FileStream* stream);
 char  FS_get_char(struct FileStream* stream);
 

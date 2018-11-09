@@ -28,6 +28,7 @@ directive name.  The preprocessing directives that are supported are
 - `#endif`
 - `#define VARNAME`
 - `#define VARNAME VALUE`
+- `#undef VARNAME`
 
 Note, these preprocessing directives are not case sensative, but the `FNAME`,
 `VARNAME` and `VALUE` are.  The two `#include` variants are different, where

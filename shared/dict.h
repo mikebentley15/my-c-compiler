@@ -17,7 +17,10 @@ void  Dict_init(struct Dict* d, int capacity);
 void  Dict_resize(struct Dict* d, int capacity);
 void  Dict_del(struct Dict* d);
 void  Dict_clear(struct Dict* d);
+
+// copies the key, but not the val
 void  Dict_set(struct Dict* d, const char* key, void* val);
+
 bool  Dict_contains(struct Dict* d, const char* key);
 void* Dict_at(struct Dict* d, const char* key);
 

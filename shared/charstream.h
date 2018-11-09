@@ -8,7 +8,6 @@
 // The arg will be the struct, and the three functions are callbacks using that
 // struct.
 struct CharStream {
-  bool          is_init;
   void*         arg;
   char        (*get_char)(void*);
   int         (*get_lineno)(void*);
