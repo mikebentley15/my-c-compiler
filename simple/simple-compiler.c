@@ -11,28 +11,29 @@
 //
 //  Scanner Grammar Rules:
 //
-// anything           = .
-// nonnewline         = ^newline
-// letter             = "A" | ... | "Z" | "a" | ... | "z"
-// underscore_letter  = "_" | letter
-// digit              = "0" | ... | "9"
-// nonzeroDigit       = "1" | ... | "9"
-// whitespace         = " " | tab | "\n"
-// escSeq             = "\n" | "\t" | ...
-// printCharDbl       = (^"\" & ^""") | escSeq
-// printCharSing      = (^"\" & ^"'") | escSeq
-// identifier         = underscore_letter {underscore_letter | digit}
-// linecomment        = "//" {nonnewline} "\n"
-// mlinecomment       = "/*" {anything} "*/"
-// comment            = linecomment | mlinecomment
-// operator           = "-" | "+" | "/" | ...
-// eaten              = comment | whitespace
-// int_literal        = "0" | nonzeroDigit {digit}
-// str_literal        = """ {printCharDbl} """
-// char_literal       = "'" printCharSing "'"
-// literal            = int_literal | str_literal | char_literal
-// token              = identifier | operator | literal
-// scanning           = {{eaten} token}
+// [x] anything           = .
+// [x] nonnewline         = ^newline
+// [x] letter             = "A" | ... | "Z" | "a" | ... | "z"
+// [x] underscore_letter  = "_" | letter
+// [x] digit              = "0" | ... | "9"
+// [x] nonzeroDigit       = "1" | ... | "9"
+// [x] one_whitespace     = " " | tab | "\n"
+// [x] whitespace         = one_whitespace {one_whitespace}
+// [x] escSeq             = "\n" | "\t" | ...
+// [x] printCharDbl       = (^"\" & ^""") | escSeq
+// [x] printCharSing      = (^"\" & ^"'") | escSeq
+// [x] identifier         = underscore_letter {underscore_letter | digit}
+// [x] linecomment        = "//" {nonnewline} "\n"
+// [x] mlinecomment       = "/*" {anything} "*/"
+// [x] comment            = linecomment | mlinecomment
+// [x] operator           = "-" | "+" | "/" | ...
+// [x] eaten              = comment | whitespace
+// [x] int_literal        = "0" | nonzeroDigit {digit}
+// [x] str_literal        = """ {printCharDbl} """
+// [x] char_literal       = "'" printCharSing "'"
+// [x] literal            = int_literal | str_literal | char_literal
+// [x] token              = identifier | operator | literal
+// [x] scanning           = {{eaten} token} EOF
 
 
 //
@@ -58,61 +59,67 @@ const int nullptr = 0;
 const int TRUE    = 1;
 const int FALSE   = 0;
 
+// value returned by getchar() when end of file is reached.
+const int EOF     = -1;
+
 // token types (TT)
 // - miscelaneous
+const int TT_EOF               = -1;  // [x] end of file (i.e. EOF)
 const int TT_ERROR             =  0;  // not a valid token (default value)
-const int TT_COMMENT           =  1;  // comment
-const int TT_EOF               =  2;  // end of file (i.e. EOF)
-const int TT_IDENTIFIER        =  3;  // ("_" | letter) {"_" | letter | digit}
-// - literals
-const int TT_INT_LITERAL       =  4;  // "0"|nonzeroDigit{digit}
-const int TT_STRING_LITERAL    =  5;  // """ {printChar | "\'" | \n} """
-const int TT_CHARACTER_LITERAL =  6;  // "'" (printChar | """) "'"
+const int TT_COMMENT           =  1;  // [x] comment
+const int TT_WHITESPACE        =  2;  // [x] whitespace
+const int TT_IDENTIFIER        =  3;  // [x] ("_" | letter) {"_" | letter | digit}
+
+const int TT_INT_LITERAL       =  4;  // [x] "0"|nonzeroDigit{digit}
+const int TT_STRING_LITERAL    =  5;  // [x] """ {printChar | "\'" | \n} """
+const int TT_CHARACTER_LITERAL =  6;  // [x] "'" (printChar | """) "'"
 // - keywords
-const int TT_BOOL              =  6;  // bool
-const int TT_BREAK             =  7;  // break 
-const int TT_CHAR              =  8;  // char
-const int TT_CONST             =  9;  // const
-const int TT_CONTINUE          = 10;  // continue
-const int TT_ELSE              = 11;  // else
-const int TT_FALSE_LITERAL     = 12;  // false
-const int TT_IF                = 13;  // if
-const int TT_INT               = 14;  // int
-const int TT_NULL              = 15;  // NULL
-const int TT_RETURN            = 16;  // return
-const int TT_TRUE_LITERAL      = 17;  // true
-const int TT_VOID              = 18;  // void
-const int TT_WHILE             = 19;  // while
+const int TT_BOOL              =  6;  // [x] bool
+const int TT_BREAK             =  7;  // [x] break 
+const int TT_CHAR              =  8;  // [x] char
+const int TT_CONST             =  9;  // [x] const
+const int TT_CONTINUE          = 10;  // [x] continue
+const int TT_ELSE              = 11;  // [x] else
+const int TT_FALSE_LITERAL     = 12;  // [x] false
+const int TT_IF                = 13;  // [x] if
+const int TT_INT               = 14;  // [x] int
+const int TT_NULL              = 15;  // [x] NULL
+const int TT_RETURN            = 16;  // [x] return
+const int TT_TRUE_LITERAL      = 17;  // [x] true
+const int TT_VOID              = 18;  // [x] void
+const int TT_WHILE             = 19;  // [x] while
 // - operators
-const int TT_ARROW             = 20;  // ->
-const int TT_BITSHIFT_LEFT     = 21;  // <<
-const int TT_BITSHIFT_RIGHT    = 22;  // >>
-const int TT_BITWISE_AND       = 23;  // & (also the address of operator)
-const int TT_ADDRESS_OF        = 23;  // &
-const int TT_BITWISE_INVERT    = 24;  // ~
-const int TT_BITWISE_OR        = 25;  // |
-const int TT_BITWISE_XOR       = 26;  // ^
-const int TT_BOOLEAN_AND       = 27;  // &&
-const int TT_BOOLEAN_NOT       = 28;  // !
-const int TT_BOOLEAN_OR        = 29;  // ||
-const int TT_COMMA             = 30;  // ','
-const int TT_DIVIDE            = 31;  // /
-const int TT_DOT               = 32;  // .
-const int TT_EQUALITY          = 33;  // ==
-const int TT_EQUALS            = 34;  // =
-const int TT_GREATER           = 35;  // >
-const int TT_GREATER_EQUAL     = 36;  // >=
-const int TT_LESS              = 37;  // <
-const int TT_LESS_EQUAL        = 38;  // <=
-const int TT_LPAREN            = 39;  // (
-const int TT_MINUS             = 40;  // -
-const int TT_MODULUS           = 41;  // %
-const int TT_MULTIPLY          = 42;  // * (also the dereference)
-const int TT_DEREFERENCE       = 42;  // *
-const int TT_NOT_EQUAL         = 43;  // !=
-const int TT_PLUS              = 44;  // +
-const int TT_RPAREN            = 45;  // )
-const int TT_SEMICOLON         = 46;  // ;
+const int TT_BITSHIFT_LEFT     = 21;  // [x] <<
+const int TT_BITSHIFT_RIGHT    = 22;  // [x] >>
+const int TT_BITWISE_AND       = 23;  // [x] & (also the address of operator)
+const int TT_ADDRESS_OF        = 23;  // [x] &
+const int TT_BITWISE_INVERT    = 24;  // [x] ~
+const int TT_BITWISE_OR        = 25;  // [x] |
+const int TT_BITWISE_XOR       = 26;  // [x] ^
+const int TT_BOOLEAN_AND       = 27;  // [x] &&
+const int TT_BOOLEAN_NOT       = 28;  // [x] !
+const int TT_BOOLEAN_OR        = 29;  // [x] ||
+const int TT_COMMA             = 30;  // [x] ,
+const int TT_DIVIDE            = 31;  // [x] /
+const int TT_EQUALITY          = 33;  // [x] ==
+const int TT_EQUALS            = 34;  // [x] =
+const int TT_GREATER           = 35;  // [x] >
+const int TT_GREATER_EQUAL     = 36;  // [x] >=
+const int TT_LESS              = 37;  // [x] <
+const int TT_LESS_EQUAL        = 38;  // [x] <=
+const int TT_LCURLY            = 39;  // [x] {
+const int TT_LPAREN            = 40;  // [x] (
+const int TT_LSQUARE           = 41;  // [x] [
+const int TT_MINUS             = 42;  // [x] -
+const int TT_MODULUS           = 43;  // [x] %
+const int TT_MULTIPLY          = 44;  // [x] * (also the dereference)
+const int TT_DEREFERENCE       = 44;  // [x] *
+const int TT_NOT_EQUAL         = 45;  // [x] !=
+const int TT_PLUS              = 46;  // [x] +
+const int TT_RCURLY            = 47;  // [x] }
+const int TT_RPAREN            = 48;  // [x] )
+const int TT_RSQUARE           = 49;  // [x] ]
+const int TT_SEMICOLON         = 50;  // [x] ;
 // END CONSTANTS
 //<<----------------------------------------------------------------------------
 
@@ -126,14 +133,16 @@ int   printint_is_neg;       // boolean for printint() to capture if i < 0
 
 // scanner function variables
 int   tok_type = TT_ERROR;   // set by scan_next()
-char  tok_str[1000];         // set by scan_next()
+char  tok_str[5000];         // set by scan_next()
 int   tok_size;              // size of tok_str (i.e. tok_str[tok_size] == '\0')
 int   tok_int = 0;           // set by scan_next() when int or char literal
-char  prev_char = '\0';      // prev character read by scanner
-char  put_back  = '\0';      // a character was put back onto the read stack
+char  prev_char = EOF;       // prev character read by scanner
+char  put_back  = EOF;       // a character was put back onto the read stack
+int   read_char = EOF;       // read in from getchar()
 char  next_char = '\0';      // next character to be read by the scanner
 int   lineno = 1;            // line number
-int   column = 0;            // column number
+int   column = -1;           // column number
+int   prev_line_column = 0;  // column count of previous line
 
 // END GLOBAL VARIABLES
 //<<----------------------------------------------------------------------------
@@ -180,7 +189,7 @@ void printint(int i) {
   printstr(printint_ptr);
 }
 
-void scan_error(char char* msg) {
+void scan_error(const char* msg) {
   printstr("Scanner error: ");
   printstr(msg);
   putchar('\n');
@@ -213,17 +222,39 @@ void clear_tok() {
 }
 
 void get_next_char() {
-  push_tok_char();
-  prev_char = next_char;
-  if (put_back != '\0') {
+  if (next_char != EOF) {
+    push_tok_char();
+    prev_char = next_char;
+  }
+
+  if (next_char == '\n') {
+    lineno = lineno + 1;
+    prev_line_column = column;
+    column = 0;
+  } else if (next_char != EOF) {
+    column = column + 1;
+  }
+
+  if (put_back != EOF) {
     next_char = put_back;
-    put_back = '\0';
-  } else {
-    next_char = getchar();
+    put_back = EOF;
+  } else if (next_char != EOF) {
+    read_char = getchar();
+    if (read_char < 0) { // for portability, don't assume EOF == -1
+      next_char = EOF;
+    } else {
+      next_char = (char) read_char;
+    }
   }
 }
 
 void put_back_char() {
+  if (prev_char == '\n') {
+    lineno = lineno - 1;
+    column = prev_line_column;
+  } else {
+    column = column - 1;
+  }
   put_back = next_char;
   next_char = prev_char;
 }
@@ -264,9 +295,18 @@ int nonzeroDigit() {
   return FALSE;
 }
 
-int whitespace() {
+int one_whitespace() {
   if (next_char == ' ' || next_char == '\t' || next_char == '\n') {
     get_next_char();
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int whitespace() {
+  if (one_whitespace()) {
+    while (one_whitespace()) { }
+    tok_type = TT_WHITESPACE;
     return TRUE;
   }
   return FALSE;
@@ -283,12 +323,16 @@ int escSeq() {
     else if (next_char == 'a')  { next_char = '\a'; }
     else if (next_char == 'b')  { next_char = '\b'; }
     else if (next_char == 'f')  { next_char = '\f'; }
-    else if (next_char == 'n')  { next_char = '\n'; }
+    else if (next_char == 'n')  { next_char = '\n'; lineno = lineno - 1; }
     else if (next_char == 'r')  { next_char = '\r'; }
     else if (next_char == 't')  { next_char = '\t'; }
     else if (next_char == 'v')  { next_char = '\v'; }
-    else {
+    else if (next_char == EOF) {
+      scan_error("End of file reached when scanning escape sequence");
+      return FALSE;
+    } else {
       scan_error("Escape sequence not recognized");
+      return FALSE;
     }
     get_next_char();
     return TRUE;
@@ -297,7 +341,9 @@ int escSeq() {
 }
 
 int printCharDbl() {
-  if (next_char != '\\' && next_char != '"') {
+  if (next_char == EOF) {
+    return FALSE;
+  } else if (next_char != '\\' && next_char != '"') {
     get_next_char();
     return TRUE;
   } else if (escSeq()) {
@@ -307,7 +353,9 @@ int printCharDbl() {
 }
 
 int printCharSing() {
-  if (next_char != '\\' && next_char != '\'') {
+  if (next_char == EOF) {
+    return FALSE;
+  } else if (next_char != '\\' && next_char != '\'') {
     get_next_char();
     return TRUE;
   } else if (escSeq()) {
@@ -348,7 +396,9 @@ int linecomment() {
   if (next_char == '/') {
     get_next_char();
     if (next_char == '/') {
-      while (next_char != '\n') { get_next_char(); }
+      while (next_char != '\n' && next_char != EOF) {
+        get_next_char();
+      }
       return TRUE;
     } else {
       put_back_char();
@@ -360,12 +410,16 @@ int linecomment() {
 int mlinecomment() {
   if (next_char == '/') {
     get_next_char();
+    // TODO: handle EOF
     if (next_char == '*') {
       get_next_char();
       while (TRUE) {
         get_next_char();
         if (prev_char == '*' && next_char == '/') {
           get_next_char();
+          return TRUE;
+        } else if (next_char == EOF) {
+          scan_error("End of file reached during a multi-line comment");
           return TRUE;
         }
       }
@@ -379,6 +433,81 @@ int mlinecomment() {
 int comment() {
   if (linecomment() || mlinecomment()) {
     tok_type = TT_COMMENT;
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int single_op(char ch, int type) {
+  if (next_char == ch) {
+    get_next_char();
+    tok_type = type;
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int double_op(char c1, int t1, char c2, int t2) {
+  if (single_op(c1, t1)) {
+    single_op(c2, t2);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int operator() {
+  if (single_op('<', TT_LESS)) {
+    if (single_op('<', TT_BITSHIFT_LEFT)) { }
+    else if (single_op('=', TT_LESS_EQUAL)) { }
+    return TRUE;
+  } else if (single_op('>', TT_GREATER)) {
+    if (single_op('>', TT_BITSHIFT_RIGHT)) { }
+    else if (single_op('=', TT_GREATER_EQUAL)) { }
+    return TRUE;
+  } else if (double_op('&', TT_BITWISE_AND, '&', TT_BOOLEAN_AND)) {
+    return TRUE;
+  } else if (single_op('~', TT_BITWISE_INVERT)) {
+    return TRUE;
+  } else if (double_op('|', TT_BITWISE_OR, '|', TT_BOOLEAN_OR)) {
+    return TRUE;
+  } else if (single_op('^', TT_BITWISE_XOR)) {
+    return TRUE;
+  } else if (double_op('!', TT_BOOLEAN_NOT, '=', TT_NOT_EQUAL)) {
+    return TRUE;
+  } else if (single_op(',', TT_COMMA)) {
+    return TRUE;
+  } else if (single_op('/', TT_DIVIDE)) {
+    return TRUE;
+  } else if (double_op('=', TT_EQUALS, '=', TT_EQUALITY)) {
+    return TRUE;
+  } else if (single_op('{', TT_LCURLY)) {
+    return TRUE;
+  } else if (single_op('(', TT_LPAREN)) {
+    return TRUE;
+  } else if (single_op('[', TT_LSQUARE)) {
+    return TRUE;
+  } else if (single_op('-', TT_MINUS)) {
+    return TRUE;
+  } else if (single_op('%', TT_MODULUS)) {
+    return TRUE;
+  } else if (single_op('*', TT_MULTIPLY)) {
+    return TRUE;
+  } else if (single_op('+', TT_PLUS)) {
+    return TRUE;
+  } else if (single_op('}', TT_RCURLY)) {
+    return TRUE;
+  } else if (single_op(')', TT_RPAREN)) {
+    return TRUE;
+  } else if (single_op(']', TT_RSQUARE)) {
+    return TRUE;
+  } else if (single_op(';', TT_SEMICOLON)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int eaten() {
+  if (comment() || whitespace()) {
     return TRUE;
   }
   return FALSE;
@@ -404,31 +533,164 @@ int int_literal() {
 int str_literal() {
   if (next_char == '"') {
     get_next_char();
+    tok_type = TT_STRING_LITERAL;
     pop_tok_char();
     while (printCharDbl()) { }
-    tok_type = TT_STRING_LITERAL;
     if (next_char == '"') {
       get_next_char();
       pop_tok_char();
       return TRUE;
+    } else if (next_char == EOF) {
+      scan_error("End of file reached while scanning string literal");
     } else {
-      scan_error("");
+      scan_error("String literal did not finish");
     }
+    return TRUE;
   }
   return FALSE;
 }
 
-int operator() {
-  
+int char_literal() {
+  if (next_char == '\'') {
+    get_next_char();
+    tok_type = TT_CHARACTER_LITERAL;
+    pop_tok_char();
+    if (printCharSing()) {
+      tok_int = (int) prev_char;
+      if (next_char == '\'') {
+        get_next_char();
+        pop_tok_char();
+      } else if (next_char == EOF) {
+        scan_error("End of file reached while scanning character literal");
+      } else {
+        scan_error("Character literal is longer than one character");
+      }
+    } else if (next_char == EOF) {
+      scan_error("End of file reached while scanning character literal");
+    } else {
+      scan_error("Invalid character literal");
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int literal() {
+  if (int_literal() || str_literal() || char_literal()) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int token() {
+  if (identifier() || operator() || literal()) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 void get_next_tok() {
+  while (eaten()) { }
   clear_tok();
-  // TODO: implement
+  if (token()) { }
+  else if (next_char == EOF) { tok_type = TT_EOF; }
+  else {
+    scan_error("Unrecognized token, skipping character");
+    get_next_char();
+  }
+}
+
+void scanner_init() {
+  get_next_char();
+}
+
+void print_tok_type() {
+  if      (tok_type == TT_EOF              ) { printstr("TT_EOF"); }
+  else if (tok_type == TT_ERROR            ) { printstr("TT_ERROR"); }
+  else if (tok_type == TT_COMMENT          ) { printstr("TT_COMMENT"); }
+  else if (tok_type == TT_WHITESPACE       ) { printstr("TT_WHITESPACE"); }
+  else if (tok_type == TT_IDENTIFIER       ) { printstr("TT_IDENTIFIER"); }
+  else if (tok_type == TT_INT_LITERAL      ) { printstr("TT_INT_LITERAL"); }
+  else if (tok_type == TT_STRING_LITERAL   ) { printstr("TT_STRING_LITERAL"); }
+  else if (tok_type == TT_CHARACTER_LITERAL) { printstr("TT_CHARACTER_LITERAL"); }
+  else if (tok_type == TT_BOOL             ) { printstr("TT_BOOL"); }
+  else if (tok_type == TT_BREAK            ) { printstr("TT_BREAK"); }
+  else if (tok_type == TT_CHAR             ) { printstr("TT_CHAR"); }
+  else if (tok_type == TT_CONST            ) { printstr("TT_CONST"); }
+  else if (tok_type == TT_CONTINUE         ) { printstr("TT_CONTINUE"); }
+  else if (tok_type == TT_ELSE             ) { printstr("TT_ELSE"); }
+  else if (tok_type == TT_FALSE_LITERAL    ) { printstr("TT_FALSE_LITERAL"); }
+  else if (tok_type == TT_IF               ) { printstr("TT_IF"); }
+  else if (tok_type == TT_INT              ) { printstr("TT_INT"); }
+  else if (tok_type == TT_NULL             ) { printstr("TT_NULL"); }
+  else if (tok_type == TT_RETURN           ) { printstr("TT_RETURN"); }
+  else if (tok_type == TT_TRUE_LITERAL     ) { printstr("TT_TRUE_LITERAL"); }
+  else if (tok_type == TT_VOID             ) { printstr("TT_VOID"); }
+  else if (tok_type == TT_WHILE            ) { printstr("TT_WHILE"); }
+  else if (tok_type == TT_BITSHIFT_LEFT    ) { printstr("TT_BITSHIFT_LEFT"); }
+  else if (tok_type == TT_BITSHIFT_RIGHT   ) { printstr("TT_BITSHIFT_RIGHT"); }
+  else if (tok_type == TT_BITWISE_AND      ) { printstr("TT_BITWISE_AND"); }
+  else if (tok_type == TT_ADDRESS_OF       ) { printstr("TT_ADDRESS_OF"); }
+  else if (tok_type == TT_BITWISE_INVERT   ) { printstr("TT_BITWISE_INVERT"); }
+  else if (tok_type == TT_BITWISE_OR       ) { printstr("TT_BITWISE_OR"); }
+  else if (tok_type == TT_BITWISE_XOR      ) { printstr("TT_BITWISE_XOR"); }
+  else if (tok_type == TT_BOOLEAN_AND      ) { printstr("TT_BOOLEAN_AND"); }
+  else if (tok_type == TT_BOOLEAN_NOT      ) { printstr("TT_BOOLEAN_NOT"); }
+  else if (tok_type == TT_BOOLEAN_OR       ) { printstr("TT_BOOLEAN_OR"); }
+  else if (tok_type == TT_COMMA            ) { printstr("TT_COMMA"); }
+  else if (tok_type == TT_DIVIDE           ) { printstr("TT_DIVIDE"); }
+  else if (tok_type == TT_EQUALITY         ) { printstr("TT_EQUALITY"); }
+  else if (tok_type == TT_EQUALS           ) { printstr("TT_EQUALS"); }
+  else if (tok_type == TT_GREATER          ) { printstr("TT_GREATER"); }
+  else if (tok_type == TT_GREATER_EQUAL    ) { printstr("TT_GREATER_EQUAL"); }
+  else if (tok_type == TT_LESS             ) { printstr("TT_LESS"); }
+  else if (tok_type == TT_LESS_EQUAL       ) { printstr("TT_LESS_EQUAL"); }
+  else if (tok_type == TT_LCURLY           ) { printstr("TT_LCURLY"); }
+  else if (tok_type == TT_LPAREN           ) { printstr("TT_LPAREN"); }
+  else if (tok_type == TT_LSQUARE          ) { printstr("TT_LSQUARE"); }
+  else if (tok_type == TT_MINUS            ) { printstr("TT_MINUS"); }
+  else if (tok_type == TT_MODULUS          ) { printstr("TT_MODULUS"); }
+  else if (tok_type == TT_MULTIPLY         ) { printstr("TT_MULTIPLY"); }
+  else if (tok_type == TT_DEREFERENCE      ) { printstr("TT_DEREFERENCE"); }
+  else if (tok_type == TT_NOT_EQUAL        ) { printstr("TT_NOT_EQUAL"); }
+  else if (tok_type == TT_PLUS             ) { printstr("TT_PLUS"); }
+  else if (tok_type == TT_RCURLY           ) { printstr("TT_RCURLY"); }
+  else if (tok_type == TT_RPAREN           ) { printstr("TT_RPAREN"); }
+  else if (tok_type == TT_RSQUARE          ) { printstr("TT_RSQUARE"); }
+  else if (tok_type == TT_SEMICOLON        ) { printstr("TT_SEMICOLON"); }
+}
+
+void print_tok() {
+  printstr("Token:\n");
+  printstr("  lineno = ");
+  printint(lineno);
+  printstr("\n");
+  printstr("  column = ");
+  printint(column);
+  printstr("\n");
+  printstr("  str    = \"");
+  printstr(tok_str);
+  printstr("\"\n");
+  printstr("  type   = ");
+  printint(tok_type);
+  printstr(" (");
+  print_tok_type();
+  printstr(")\n");
+  printstr("  int    = ");
+  printint(tok_int);
+  printstr("\n");
+}
+
+void print_all_toks() {
+  get_next_tok();
+  while (tok_type != TT_EOF) {
+    print_tok();
+    get_next_tok();
+  }
 }
 
 int main(void) {
-  
-
+  scanner_init();
+  print_all_toks();
   return 0;
 }
