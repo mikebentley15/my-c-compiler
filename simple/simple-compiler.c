@@ -101,56 +101,56 @@ const int TT_COMMENT           =  1;  // comment
 const int TT_WHITESPACE        =  2;  // whitespace
 const int TT_IDENTIFIER        =  3;  // ("_" | letter) {"_" | letter | digit}
 
-const int TT_INT_LITERAL       =  4;  // [x] "0"|nonzeroDigit{digit}
-const int TT_STRING_LITERAL    =  5;  // [x] """ {printChar | "\'" | \n} """
-const int TT_CHARACTER_LITERAL =  6;  // [x] "'" (printChar | """) "'"
+const int TT_INT_LITERAL       =  4;  // "0"|nonzeroDigit{digit}
+const int TT_STRING_LITERAL    =  5;  // """ {printChar | "\'" | \n} """
+const int TT_CHARACTER_LITERAL =  6;  // "'" (printChar | """) "'"
 // - keywords
-const int TT_BOOL              =  6;  // [x] bool
-const int TT_BREAK             =  7;  // [x] break
-const int TT_CHAR              =  8;  // [x] char
-const int TT_CONST             =  9;  // [x] const
-const int TT_CONTINUE          = 10;  // [x] continue
-const int TT_ELSE              = 11;  // [x] else
-const int TT_FALSE_LITERAL     = 12;  // [x] false
-const int TT_IF                = 13;  // [x] if
-const int TT_INT               = 14;  // [x] int
-const int TT_NULL              = 15;  // [x] NULL
-const int TT_RETURN            = 16;  // [x] return
-const int TT_TRUE_LITERAL      = 17;  // [x] true
-const int TT_VOID              = 18;  // [x] void
-const int TT_WHILE             = 19;  // [x] while
+const int TT_BOOL              =  6;  // bool
+const int TT_BREAK             =  7;  // break
+const int TT_CHAR              =  8;  // char
+const int TT_CONST             =  9;  // const
+const int TT_CONTINUE          = 10;  // continue
+const int TT_ELSE              = 11;  // else
+const int TT_FALSE_LITERAL     = 12;  // false
+const int TT_IF                = 13;  // if
+const int TT_INT               = 14;  // int
+const int TT_NULL              = 15;  // NULL
+const int TT_RETURN            = 16;  // return
+const int TT_TRUE_LITERAL      = 17;  // true
+const int TT_VOID              = 18;  // void
+const int TT_WHILE             = 19;  // while
 // - operators
-const int TT_BITSHIFT_LEFT     = 21;  // [x] <<
-const int TT_BITSHIFT_RIGHT    = 22;  // [x] >>
-const int TT_BITWISE_AND       = 23;  // [x] & (also the address of operator)
-const int TT_BITWISE_INVERT    = 24;  // [ ] ~
-const int TT_BITWISE_OR        = 25;  // [x] |
-const int TT_BITWISE_XOR       = 26;  // [x] ^
-const int TT_BOOLEAN_AND       = 27;  // [x] &&
-const int TT_BOOLEAN_NOT       = 28;  // [ ] !
-const int TT_BOOLEAN_OR        = 29;  // [x] ||
-const int TT_COMMA             = 30;  // [x] ,
-const int TT_DIVIDE            = 31;  // [x] /
-const int TT_EQUALITY          = 33;  // [x] ==
-const int TT_EQUALS            = 34;  // [x] =
-const int TT_GREATER           = 35;  // [x] >
-const int TT_GREATER_EQUAL     = 36;  // [x] >=
-const int TT_LESS              = 37;  // [x] <
-const int TT_LESS_EQUAL        = 38;  // [x] <=
-const int TT_LCURLY            = 39;  // [x] {
-const int TT_LPAREN            = 40;  // [x] (
-const int TT_LSQUARE           = 41;  // [x] [
-const int TT_MINUS             = 42;  // [x] -
-const int TT_MODULUS           = 43;  // [x] %
-const int TT_MULTIPLY          = 44;  // [x] * (also the dereference and pointer)
-const int TT_DEREFERENCE       = 44;  // [x] *
-const int TT_POINTER           = 44;  // [x] *
-const int TT_NOT_EQUAL         = 45;  // [x] !=
-const int TT_PLUS              = 46;  // [x] +
-const int TT_RCURLY            = 47;  // [x] }
-const int TT_RPAREN            = 48;  // [x] )
-const int TT_RSQUARE           = 49;  // [x] ]
-const int TT_SEMICOLON         = 50;  // [x] ;
+const int TT_BITSHIFT_LEFT     = 21;  // <<
+const int TT_BITSHIFT_RIGHT    = 22;  // >>
+const int TT_BITWISE_AND       = 23;  // & (also the address of operator)
+const int TT_BITWISE_INVERT    = 24;  // ~
+const int TT_BITWISE_OR        = 25;  // |
+const int TT_BITWISE_XOR       = 26;  // ^
+const int TT_BOOLEAN_AND       = 27;  // &&
+const int TT_BOOLEAN_NOT       = 28;  // !
+const int TT_BOOLEAN_OR        = 29;  // ||
+const int TT_COMMA             = 30;  // ,
+const int TT_DIVIDE            = 31;  // /
+const int TT_EQUALITY          = 33;  // ==
+const int TT_EQUALS            = 34;  // =
+const int TT_GREATER           = 35;  // >
+const int TT_GREATER_EQUAL     = 36;  // >=
+const int TT_LESS              = 37;  // <
+const int TT_LESS_EQUAL        = 38;  // <=
+const int TT_LCURLY            = 39;  // {
+const int TT_LPAREN            = 40;  // (
+const int TT_LSQUARE           = 41;  // [
+const int TT_MINUS             = 42;  // -
+const int TT_MODULUS           = 43;  // %
+const int TT_MULTIPLY          = 44;  // * (also the dereference and pointer)
+const int TT_DEREFERENCE       = 44;  // *
+const int TT_POINTER           = 44;  // *
+const int TT_NOT_EQUAL         = 45;  // !=
+const int TT_PLUS              = 46;  // +
+const int TT_RCURLY            = 47;  // }
+const int TT_RPAREN            = 48;  // )
+const int TT_RSQUARE           = 49;  // ]
+const int TT_SEMICOLON         = 50;  // ;
 // END CONSTANTS
 //<<----------------------------------------------------------------------------
 
