@@ -39,19 +39,24 @@
 //  Parser Grammar Rules:
 //
 // parsing            = {def (funcargdef (body | ";") |
-//                            {arrayidx} | "=" expr] ";")}.
+//                            {arrayidx} ";" | "=" expr ";")}.
 // def                = type identifier.
 // type               = ["const"] ("void" | "int" | "char" | "bool") {"*"}.
 // funcargdef         = "(" [type [identifier] {"," type [identifier]}] ")".
 // arrayidx           = "[" expr "]"
 // body               = "{" {bodyelem} "}".
 // bodyelem           = whileloop | ifblock | statement.
-// whileloop          = "while" "(" expr ")" body.
-// ifblock            = "if" "(" expr ")" body 
-//                        {"else" "if" "(" expr ")" body} ["else" body].
-// statement          = identifier (funcarg | "=" expr) ";"
+// whileloop          = "while" "(" boolexpr ")" body.
+// ifblock            = "if" "(" boolexpr ")" body
+//                        {"else" "if" "(" boolexpr ")" body} ["else" body].
+// statement          = (identifier (funcarg | {arrayidx} "=" expr) |
+//                       "return" [expr] |
+//                       "break" |
+//                       "continue")
+//                       ";"
 // funcarg            = "(" [expr {"," expr}] ")"
-// expr               = str_literal | expr1
+// expr               = str_literal | boolexpr
+// boolexpr           = {("!" | "~")} expr1
 // expr1              = expr2 {"||" expr2}.
 // expr2              = expr3 {"&&" expr3}.
 // expr3              = expr4 {"|"  expr4}.
@@ -64,7 +69,7 @@
 // term               = factor {("*" | "/" | "%") factor}.
 // factor             = ["-"] ( identifier [funcarg] {arrayidx} | int_literal |
 //                              char_literal | true_literal | false_literal |
-//                              "(" expr ")" ).
+//                              NULL | "(" expr ")" ).
 
 //>>----------------------------------------------------------------------------
 // BEGIN LIBRARY FUNCTION DECLARATIONS
@@ -96,56 +101,56 @@ const int TT_COMMENT           =  1;  // comment
 const int TT_WHITESPACE        =  2;  // whitespace
 const int TT_IDENTIFIER        =  3;  // ("_" | letter) {"_" | letter | digit}
 
-const int TT_INT_LITERAL       =  4;  // "0"|nonzeroDigit{digit}
-const int TT_STRING_LITERAL    =  5;  // """ {printChar | "\'" | \n} """
-const int TT_CHARACTER_LITERAL =  6;  // "'" (printChar | """) "'"
+const int TT_INT_LITERAL       =  4;  // [x] "0"|nonzeroDigit{digit}
+const int TT_STRING_LITERAL    =  5;  // [x] """ {printChar | "\'" | \n} """
+const int TT_CHARACTER_LITERAL =  6;  // [x] "'" (printChar | """) "'"
 // - keywords
-const int TT_BOOL              =  6;  // bool
-const int TT_BREAK             =  7;  // break 
-const int TT_CHAR              =  8;  // char
-const int TT_CONST             =  9;  // const
-const int TT_CONTINUE          = 10;  // continue
-const int TT_ELSE              = 11;  // else
-const int TT_FALSE_LITERAL     = 12;  // false
-const int TT_IF                = 13;  // if
-const int TT_INT               = 14;  // int
-const int TT_NULL              = 15;  // NULL
-const int TT_RETURN            = 16;  // return
-const int TT_TRUE_LITERAL      = 17;  // true
-const int TT_VOID              = 18;  // void
-const int TT_WHILE             = 19;  // while
+const int TT_BOOL              =  6;  // [x] bool
+const int TT_BREAK             =  7;  // [x] break
+const int TT_CHAR              =  8;  // [x] char
+const int TT_CONST             =  9;  // [x] const
+const int TT_CONTINUE          = 10;  // [x] continue
+const int TT_ELSE              = 11;  // [x] else
+const int TT_FALSE_LITERAL     = 12;  // [x] false
+const int TT_IF                = 13;  // [x] if
+const int TT_INT               = 14;  // [x] int
+const int TT_NULL              = 15;  // [x] NULL
+const int TT_RETURN            = 16;  // [x] return
+const int TT_TRUE_LITERAL      = 17;  // [x] true
+const int TT_VOID              = 18;  // [x] void
+const int TT_WHILE             = 19;  // [x] while
 // - operators
-const int TT_BITSHIFT_LEFT     = 21;  // <<
-const int TT_BITSHIFT_RIGHT    = 22;  // >>
-const int TT_BITWISE_AND       = 23;  // & (also the address of operator)
-const int TT_ADDRESS_OF        = 23;  // &
-const int TT_BITWISE_INVERT    = 24;  // ~
-const int TT_BITWISE_OR        = 25;  // |
-const int TT_BITWISE_XOR       = 26;  // ^
-const int TT_BOOLEAN_AND       = 27;  // &&
-const int TT_BOOLEAN_NOT       = 28;  // !
-const int TT_BOOLEAN_OR        = 29;  // ||
-const int TT_COMMA             = 30;  // ,
-const int TT_DIVIDE            = 31;  // /
-const int TT_EQUALITY          = 33;  // ==
-const int TT_EQUALS            = 34;  // =
-const int TT_GREATER           = 35;  // >
-const int TT_GREATER_EQUAL     = 36;  // >=
-const int TT_LESS              = 37;  // <
-const int TT_LESS_EQUAL        = 38;  // <=
-const int TT_LCURLY            = 39;  // {
-const int TT_LPAREN            = 40;  // (
-const int TT_LSQUARE           = 41;  // [
-const int TT_MINUS             = 42;  // -
-const int TT_MODULUS           = 43;  // %
-const int TT_MULTIPLY          = 44;  // * (also the dereference)
-const int TT_DEREFERENCE       = 44;  // *
-const int TT_NOT_EQUAL         = 45;  // !=
-const int TT_PLUS              = 46;  // +
-const int TT_RCURLY            = 47;  // }
-const int TT_RPAREN            = 48;  // )
-const int TT_RSQUARE           = 49;  // ]
-const int TT_SEMICOLON         = 50;  // ;
+const int TT_BITSHIFT_LEFT     = 21;  // [x] <<
+const int TT_BITSHIFT_RIGHT    = 22;  // [x] >>
+const int TT_BITWISE_AND       = 23;  // [x] & (also the address of operator)
+const int TT_BITWISE_INVERT    = 24;  // [ ] ~
+const int TT_BITWISE_OR        = 25;  // [x] |
+const int TT_BITWISE_XOR       = 26;  // [x] ^
+const int TT_BOOLEAN_AND       = 27;  // [x] &&
+const int TT_BOOLEAN_NOT       = 28;  // [ ] !
+const int TT_BOOLEAN_OR        = 29;  // [x] ||
+const int TT_COMMA             = 30;  // [x] ,
+const int TT_DIVIDE            = 31;  // [x] /
+const int TT_EQUALITY          = 33;  // [x] ==
+const int TT_EQUALS            = 34;  // [x] =
+const int TT_GREATER           = 35;  // [x] >
+const int TT_GREATER_EQUAL     = 36;  // [x] >=
+const int TT_LESS              = 37;  // [x] <
+const int TT_LESS_EQUAL        = 38;  // [x] <=
+const int TT_LCURLY            = 39;  // [x] {
+const int TT_LPAREN            = 40;  // [x] (
+const int TT_LSQUARE           = 41;  // [x] [
+const int TT_MINUS             = 42;  // [x] -
+const int TT_MODULUS           = 43;  // [x] %
+const int TT_MULTIPLY          = 44;  // [x] * (also the dereference and pointer)
+const int TT_DEREFERENCE       = 44;  // [x] *
+const int TT_POINTER           = 44;  // [x] *
+const int TT_NOT_EQUAL         = 45;  // [x] !=
+const int TT_PLUS              = 46;  // [x] +
+const int TT_RCURLY            = 47;  // [x] }
+const int TT_RPAREN            = 48;  // [x] )
+const int TT_RSQUARE           = 49;  // [x] ]
+const int TT_SEMICOLON         = 50;  // [x] ;
 // END CONSTANTS
 //<<----------------------------------------------------------------------------
 
@@ -158,6 +163,7 @@ char *printint_ptr;          // pointer used in printint_buf
 int   printint_is_neg;       // boolean for printint() to capture if i < 0
 
 // scanner function variables
+int   is_scanner_init = FALSE;
 int   tok_type = TT_ERROR;   // set by scan_next()
 char  tok_str[5000];         // set by scan_next()
 int   tok_size;              // size of tok_str (i.e. tok_str[tok_size] == '\0')
@@ -169,6 +175,9 @@ char  next_char = '\0';      // next character to be read by the scanner
 int   lineno = 1;            // line number
 int   column = -1;           // column number
 int   prev_line_column = 0;  // column count of previous line
+
+// parser function variables
+int   is_parser_init = FALSE;
 
 // END GLOBAL VARIABLES
 //<<----------------------------------------------------------------------------
@@ -591,7 +600,7 @@ int char_literal() {
     tok_type = TT_CHARACTER_LITERAL;
     pop_tok_char();
     if (printCharSing()) {
-      tok_int = (int) prev_char;
+      tok_int = prev_char;
       if (next_char == '\'') {
         get_next_char();
         pop_tok_char();
@@ -636,7 +645,10 @@ void get_next_tok() {
 }
 
 void scanner_init() {
-  get_next_char();
+  if (!is_scanner_init) {
+    is_scanner_init = TRUE;
+    get_next_char();
+  }
 }
 
 // END SCANNER FUNCTIONS
@@ -646,136 +658,6 @@ void scanner_init() {
 
 //>>----------------------------------------------------------------------------
 // BEGIN PARSER FUNCTIONS
-
-void parse_error(const char* msg) {
-  printstr("Parser error: ");
-  printstr(msg);
-  printstr("\n  ");
-  print_tok();
-  printstr("  lineno      = ");
-  printint(lineno);
-  putchar('\n');
-  printstr("  column      = ");
-  printint(column);
-  putchar('\n');
-}
-
-int expr();
-
-int funcarg() {
-  if (tok_type == TT_LPAREN) {
-    get_next_tok();
-    if (expr()) {
-      // handle expr
-    }
-    while (tok_type == TT_COMMA) {
-      get_next_tok();
-      if (expr()) {
-        // handle expr
-      } else {
-        parse_error("Expected expression");
-      }
-    }
-    if (tok_type == TT_RPAREN) {
-      get_next_tok();
-    } else {
-      parse_error("Expected closing parenthese on function call");
-    }
-    // handle function call
-    return TRUE;
-  }
-  return FALSE;
-}
-
-int arrayidx() {
-  if (tok_type == TT_LSQUARE) {
-    if (expr()) {
-      // handle expr
-    } else {
-      parse_error("Expected expression in array index");
-    }
-    if (tok_type != TT_RSQUARE) {
-      parse_error("Expected ']'");
-    }
-    return TRUE;
-  }
-  return FALSE;
-}
-
-int factor() {
-  if (tok_type == TT_MINUS) {
-    // handle unary minus sign
-    get_next_tok();
-  }
-
-  if (tok_type == TT_IDENTIFIER) {
-    get_next_tok();
-    if (funcarg()) {
-      // handle a function call
-    } else {
-      // handle a variable name
-    }
-    while (arrayidx()) {
-      // handle array indexing
-    }
-    // handle identifier
-    return TRUE;
-  } else if (tok_type == TT_INT_LITERAL) {
-    get_next_tok();
-    // handle int literal
-    return TRUE;
-  } else if (tok_type == TT_CHAR_LITERAL) {
-    get_next_tok();
-    // handle character literal
-    return TRUE;
-  } else if (tok_type == TT_TRUE_LITERAL) {
-    get_next_tok();
-    // handle true literal
-    return TRUE;
-  } else if (tok_type == TT_FALSE_LITERAL) {
-    get_next_tok();
-    // handle false literal
-    return TRUE;
-  } else if (tok_type == TT_LPAREN) {
-    get_next_tok();
-    if (!expr()) {
-      parse_error("expected expression within parentheses");
-    }
-    if (tok_type != TT_RPAREN) {
-      parse_error("expected right parentheses");
-    }
-    return TRUE;
-  }
-  return FALSE;
-}
-
-int term() { }
-int expr9() { }
-int expr8() { }
-int expr7() { }
-int expr6() { }
-int expr5() { }
-int expr4() { }
-int expr3() { }
-int expr2() { }
-int expr1() { }
-int expr() { }
-int statement() { }
-int ifblock() { }
-int whileloop() { }
-int bodyelem() { }
-int body() { }
-int funcargdef() { }
-int type() { }
-int def() { }
-void parse_all() { }
-void parser_init() { }
-
-// END PARSER FUNCTIONS
-//<<----------------------------------------------------------------------------
-
-//>>----------------------------------------------------------------------------
-// BEGIN MAIN FUNCTIONS
 
 void print_tok_type() {
   if      (tok_type == TT_EOF              ) { printstr("TT_EOF"); }
@@ -803,7 +685,6 @@ void print_tok_type() {
   else if (tok_type == TT_BITSHIFT_LEFT    ) { printstr("TT_BITSHIFT_LEFT"); }
   else if (tok_type == TT_BITSHIFT_RIGHT   ) { printstr("TT_BITSHIFT_RIGHT"); }
   else if (tok_type == TT_BITWISE_AND      ) { printstr("TT_BITWISE_AND"); }
-  else if (tok_type == TT_ADDRESS_OF       ) { printstr("TT_ADDRESS_OF"); }
   else if (tok_type == TT_BITWISE_INVERT   ) { printstr("TT_BITWISE_INVERT"); }
   else if (tok_type == TT_BITWISE_OR       ) { printstr("TT_BITWISE_OR"); }
   else if (tok_type == TT_BITWISE_XOR      ) { printstr("TT_BITWISE_XOR"); }
@@ -849,7 +730,726 @@ void print_tok() {
   printstr(")\n");
 }
 
+void parse_error(const char* msg) {
+  printstr("Parser error: ");
+  printstr(msg);
+  printstr("\n  ");
+  print_tok();
+  printstr("  lineno      = ");
+  printint(lineno);
+  putchar('\n');
+  printstr("  column      = ");
+  printint(column);
+  putchar('\n');
+}
+
+int expr();
+
+int funcarg() {
+  if (tok_type == TT_LPAREN) {
+    get_next_tok();
+    if (expr()) {
+      // handle expr
+    }
+    while (tok_type == TT_COMMA) {
+      get_next_tok();
+      if (expr()) {
+        // handle expr
+      } else {
+        parse_error("Expected expression");
+      }
+    }
+    if (tok_type == TT_RPAREN) {
+      get_next_tok();
+    } else {
+      parse_error("Expected closing parenthese on function call");
+    }
+    // handle function call
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int arrayidx() {
+  if (tok_type == TT_LSQUARE) {
+    // handle left square bracket
+    get_next_tok();
+    if (expr()) {
+      // handle expr
+    } else {
+      parse_error("Expected expression in array index");
+    }
+    if (tok_type == TT_RSQUARE) {
+      // handle right square bracket
+      get_next_tok();
+    } else {
+      parse_error("Expected ']'");
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int factor() {
+  if (tok_type == TT_MINUS) {
+    // handle unary minus sign
+    get_next_tok();
+  }
+
+  if (tok_type == TT_IDENTIFIER) {
+    get_next_tok();
+    if (funcarg()) {
+      // handle a function call
+    } else {
+      // handle a variable name
+    }
+    while (arrayidx()) {
+      // handle array indexing
+    }
+    // handle identifier
+    return TRUE;
+  } else if (tok_type == TT_INT_LITERAL) {
+    get_next_tok();
+    // handle int literal
+    return TRUE;
+  } else if (tok_type == TT_CHARACTER_LITERAL) {
+    get_next_tok();
+    // handle character literal
+    return TRUE;
+  } else if (tok_type == TT_TRUE_LITERAL) {
+    get_next_tok();
+    // handle true literal
+    return TRUE;
+  } else if (tok_type == TT_FALSE_LITERAL) {
+    get_next_tok();
+    // handle false literal
+    return TRUE;
+  } else if (tok_type == TT_NULL) {
+    get_next_tok();
+    // handle NULL literal
+    return TRUE;
+  } else if (tok_type == TT_LPAREN) {
+    get_next_tok();
+    if (!expr()) {
+      parse_error("expected expression within parentheses");
+    }
+    if (tok_type == TT_RPAREN) {
+      // handle right parenthesis
+      get_next_tok();
+    } else {
+      parse_error("expected right parentheses");
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int term() {
+  if (factor()) {
+    // handle factor
+    while (tok_type == TT_MULTIPLY ||
+           tok_type == TT_DIVIDE ||
+           tok_type == TT_MODULUS)
+    {
+      if (tok_type == TT_MULTIPLY) {
+        // handle multiply
+      } else if (tok_type == TT_DIVIDE) {
+        // handle divide
+      } else if (tok_type == TT_MODULUS) {
+        // handle modulus
+      }
+      get_next_tok();
+      if (factor()) {
+        // handle factor
+      } else {
+        parse_error("Expected factor after multiply or divide or modulus");
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int expr9() {
+  if (term()) {
+    // handle term
+    while (tok_type == TT_PLUS || tok_type == TT_MINUS) {
+      if (tok_type == TT_PLUS) {
+        // handle plus
+      } else if (tok_type == TT_MINUS) {
+        // handle minus
+      }
+      get_next_tok();
+      if (term()) {
+        // handle term
+      } else {
+        parse_error("Expected term after plus or minus");
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int expr8() {
+  if (expr9()) {
+    // handle expr9
+    while (tok_type == TT_BITSHIFT_LEFT || tok_type == TT_BITSHIFT_RIGHT) {
+      if (tok_type == TT_BITSHIFT_LEFT) {
+        // handle bitshift left
+      } else if (tok_type == TT_BITSHIFT_RIGHT) {
+        // handle bitshift right
+      }
+      get_next_tok();
+      if (expr9()) {
+        // handle expr9
+      } else {
+        parse_error("Expected expr9 after bitshift operator");
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int expr7() {
+  if (expr8()) {
+    // handle expr8
+    while (tok_type == TT_LESS    || tok_type == TT_LESS_EQUAL ||
+           tok_type == TT_GREATER || tok_type == TT_GREATER_EQUAL)
+    {
+      if (tok_type == TT_LESS) {
+        // handle less than
+      } else if (tok_type == TT_LESS_EQUAL) {
+        // handle less than or equal
+      } else if (tok_type == TT_GREATER) {
+        // handle greater than
+      } else if (tok_type == TT_GREATER_EQUAL) {
+        // handle greater than or equal to
+      }
+      get_next_tok();
+      if (expr8()) {
+        // handle expr8
+      } else {
+        parse_error("Expected expr8 after comparison operator");
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int expr6() {
+  if (expr7()) {
+    // handle expr7
+    while (tok_type == TT_EQUALITY || tok_type == TT_NOT_EQUAL) {
+      if (tok_type == TT_EQUALITY) {
+        // handle equality (==)
+      } else if (tok_type == TT_NOT_EQUAL) {
+        // handle not equal (!=)
+      }
+      get_next_tok();
+      if (expr7()) {
+        // handle expr7
+      } else {
+        parse_error("Expected expr7 after equality comparison");
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int expr5() {
+  if (expr6()) {
+    // handle expr6
+    while (tok_type == TT_BITWISE_AND) {
+      // handle bitwise and
+      get_next_tok();
+      if (expr6()) {
+        // handle expr6
+      } else {
+        parse_error("Expected expr6 after bitwise and operator");
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int expr4() {
+  if (expr5()) {
+    // handle expr5
+    while (tok_type == TT_BITWISE_XOR) {
+      // handle bitwise xor
+      get_next_tok();
+      if (expr5()) {
+        // handle expr5
+      } else {
+        parse_error("Expected expr5 after bitwise xor");
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int expr3() {
+  if (expr4()) {
+    // handle expr4
+    while (tok_type == TT_BITWISE_OR) {
+      // handle bitwise or (|)
+      get_next_tok();
+      if (expr4()) {
+        // handle expr4
+      } else {
+        parse_error("Expected expr4 after bitwise or");
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int expr2() {
+  if (expr3()) {
+    // handle expr3
+    while (tok_type == TT_BOOLEAN_AND) {
+      // handle boolean and (&&)
+      get_next_tok();
+      if (expr3()) {
+        // handle expr3
+      } else {
+        parse_error("Expected expr3 after &&");
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int expr1() {
+  if (expr2()) {
+    // handle expr2
+    while (tok_type == TT_BOOLEAN_OR) {
+      // handle boolean or (||)
+      get_next_tok();
+      if (expr2()) {
+        // handle expr2
+      } else {
+        parse_error("Expected expr2 after ||");
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int boolexpr() {
+  if (tok_type == TT_BOOLEAN_NOT || tok_type == TT_BITWISE_INVERT) {
+    while (tok_type == TT_BOOLEAN_NOT || tok_type == TT_BITWISE_INVERT) {
+      if (tok_type == TT_BOOLEAN_NOT) {
+        // handle boolean not (!)
+        get_next_tok();
+      } else if (tok_type == TT_BITWISE_INVERT) {
+        // handle bitwise invert (~)
+        get_next_tok();
+      } else {
+        parse_error("Internal error in boolexpr()");
+      }
+    }
+    if (expr1()) {
+      // handle expr1
+    } else {
+      parse_error("Expected expr1 after '!' or '~'");
+    }
+    return TRUE;
+  } else if (expr1()) {
+    // handle expr1
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int expr() {
+  if (tok_type == TT_STRING_LITERAL) {
+    // handle string literal
+    get_next_tok();
+    return TRUE;
+  } else if (boolexpr()) {
+    // handle boolexpr
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int statement() {
+  if (tok_type == TT_IDENTIFIER || tok_type == TT_RETURN ||
+      tok_type == TT_BREAK || tok_type == TT_CONTINUE)
+  {
+    if (tok_type == TT_IDENTIFIER) {
+      // handle identifier
+      get_next_tok();
+      if (tok_type == TT_EQUALS) {
+        // handle assignment
+        get_next_tok();
+        if (expr()) {
+          // handle expr
+        } else {
+          parse_error("Expected expr after assignment operator (=)");
+        }
+      } else if (funcarg()) {
+        // handle function arguments
+      } else if (arrayidx()) {
+        // handle arrayidx
+        while (arrayidx()) {
+          // handle arrayidx
+        }
+        if (tok_type == TT_EQUALS) {
+          // handle assignment
+          get_next_tok();
+        } else {
+          parse_error("Expected assignment after array indexing");
+        }
+        if (expr()) {
+          // handle expr
+        } else {
+          parse_error("Expected expr after assignment operator (=)");
+        }
+      } else {
+        parse_error("Expected assignment or function call after identifier");
+      }
+    } else if (tok_type == TT_RETURN) {
+      // handle return
+      get_next_tok();
+      if (expr()) {
+        // handle expr
+      }
+    } else if (tok_type == TT_BREAK) {
+      // handle break
+      get_next_tok();
+    } else if (tok_type == TT_CONTINUE) {
+      // handle continue
+      get_next_tok();
+    } else {
+      parse_error("Internal Error: Unhandled case in statement()");
+    }
+
+    if (tok_type == TT_SEMICOLON) {
+      // handle semicolon
+      get_next_tok();
+    } else {
+      parse_error("Expected semicolon after statement");
+    }
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int whileloop();
+int ifblock();
+
+int bodyelem() {
+  if (whileloop()) {
+    // handle while loop
+    return TRUE;
+  } else if (ifblock()) {
+    // handle if block
+    return TRUE;
+  } else if (statement()) {
+    // handle statement
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int body() {
+  if (tok_type == TT_LCURLY) {
+    // handle left curly brace
+    get_next_tok();
+    while (bodyelem()) {
+      // handle bodyelem
+    }
+    if (tok_type == TT_RCURLY) {
+      // handle right curly brace
+      get_next_tok();
+    } else {
+      parse_error("Expected right curly brace to end the body");
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int ifblock() {
+  if (tok_type == TT_IF) {
+    // handle if
+    get_next_tok();
+
+    if (tok_type == TT_LPAREN) {
+      // handle left paren
+      get_next_tok();
+    } else {
+      parse_error("Expected left paren after if");
+    }
+
+    if (boolexpr()) {
+      // handle expr
+    } else {
+      parse_error("Expected boolexpr in paren of if");
+    }
+
+    if (tok_type == TT_RPAREN) {
+      // handle right paren
+      get_next_tok();
+    } else {
+      parse_error("Expected right paren after if boolexpr");
+    }
+
+    if (body()) {
+      // handle body
+    } else {
+      parse_error("Expected body after right paren of if");
+    }
+
+    while (tok_type == TT_ELSE) {
+      get_next_tok();
+      if (tok_type == TT_IF) {
+        // handle else if
+        get_next_tok();
+
+        if (tok_type == TT_LPAREN) {
+          // handle left paren
+          get_next_tok();
+        } else {
+          parse_error("Expected left paren after if");
+        }
+
+        if (boolexpr()) {
+          // handle expr
+        } else {
+          parse_error("Expected boolexpr in paren of if");
+        }
+
+        if (tok_type == TT_RPAREN) {
+          // handle right paren
+          get_next_tok();
+        } else {
+          parse_error("Expected right paren after if boolexpr");
+        }
+
+        if (body()) {
+          // handle body
+        } else {
+          parse_error("Expected body after right paren of if");
+        }
+      } else if (body()) {
+        // handle body
+        break;
+      } else {
+        parse_error("Expected if or a body after else");
+      }
+    }
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int whileloop() {
+  if (tok_type == TT_WHILE) {
+    // handle while
+    get_next_tok();
+
+    if (tok_type == TT_LPAREN) {
+      // handle left parenthesis
+      get_next_tok();
+    } else {
+      parse_error("Expected left parenthesis after while");
+    }
+
+    if (boolexpr()) {
+      // handle boolexpr
+    } else {
+      parse_error("Expected expression in parentheses after while");
+    }
+
+    if (tok_type == TT_RPAREN) {
+      // handle right parenthesis
+      get_next_tok();
+    } else {
+      parse_error("Expected right parenthesis after whlie");
+    }
+
+    if (body()) {
+      // handle body()
+    } else {
+      parse_error("Expected body after while conditional");
+    }
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int type() {
+  if (tok_type == TT_CONST) {
+    // handle const
+    get_next_tok();
+  }
+
+  if (tok_type == TT_VOID || tok_type == TT_INT ||
+      tok_type == TT_CHAR || tok_type == TT_BOOL)
+  {
+    if (tok_type == TT_VOID) {
+      // handle void
+      get_next_tok();
+    } else if (tok_type == TT_INT) {
+      // handle int
+      get_next_tok();
+    } else if (tok_type == TT_CHAR) {
+      // handle char
+      get_next_tok();
+    } else if (tok_type == TT_BOOL) {
+      // handle bool
+      get_next_tok();
+    }
+
+    while (tok_type == TT_POINTER) {
+      // handle pointer operator (*)
+      get_next_tok();
+    }
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int funcargdef() {
+  if (tok_type == TT_LPAREN) {
+    // handle left parenthesis
+    get_next_tok();
+
+    if (type()) {
+      // handle type
+      if (tok_type == TT_IDENTIFIER) {
+        // handle identifier (probably just ignore it)
+        get_next_tok();
+      }
+
+      while (tok_type == TT_COMMA) {
+        // handle comma
+        get_next_tok();
+        if (type()) {
+          // handle type
+        } else {
+          parse_error("Expected type after comma in funcargdef");
+        }
+        if (tok_type == TT_IDENTIFIER) {
+          // handle identifier (probably just ignore it)
+          get_next_tok();
+        }
+      }
+    }
+
+    if (tok_type == TT_RPAREN) {
+      // handle right parenthesis
+      get_next_tok();
+    } else {
+      parse_error(
+          "Expected right parenthesis for funcargdef");
+    }
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int def() {
+  if (type()) {
+    // handle type
+
+    if (tok_type == TT_IDENTIFIER) {
+      // handle identifier
+      get_next_tok();
+    } else {
+      parse_error("Expected identifier after type in def");
+    }
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
+void parser_init() {
+  if (!is_parser_init) {
+    is_parser_init = TRUE;
+    scanner_init();
+    get_next_tok();
+  }
+}
+
+void parse_all() {
+  if (!is_parser_init) {
+    parser_init();
+  }
+
+  while (def()) {
+    // handle def
+
+    if (tok_type == TT_EQUALS) {
+      // handle assignment
+      get_next_tok();
+      if (expr()) {
+        // handle expr
+      } else {
+        parse_error("Expected expr after assignment");
+      }
+      if (tok_type == TT_SEMICOLON) {
+        // handle semicolon
+        get_next_tok();
+      } else {
+        parse_error("Expected semicolon after expr in assignment");
+      }
+    } else if (tok_type == TT_SEMICOLON) {
+      // handle semicolon
+      get_next_tok();
+    } else if (arrayidx()) {
+      // handle arrayidx
+      while (arrayidx()) {
+        // handle arrayidx
+      }
+      if (tok_type == TT_SEMICOLON) {
+        // handle semicolon
+        get_next_tok();
+      } else {
+        parse_error("Expected semicolon in array definition");
+      }
+    } else if (funcargdef()) {
+      if (body()) {
+        // handle body
+      } else if (tok_type == TT_SEMICOLON) {
+        // handle semicolon
+        get_next_tok();
+      } else {
+        parse_error(
+            "Expected a function body or semicolon after function def");
+      }
+    } else {
+      parse_error("Expected ';' or '=' or '[' or '(' after definition");
+    }
+  }
+}
+
+// END PARSER FUNCTIONS
+//<<----------------------------------------------------------------------------
+
+//>>----------------------------------------------------------------------------
+// BEGIN MAIN FUNCTIONS
+
 void print_all_toks() {
+  scanner_init();
   get_next_tok();
   while (tok_type != TT_EOF) {
     print_tok();
@@ -858,7 +1458,7 @@ void print_all_toks() {
 }
 
 int main(void) {
-  scanner_init();
-  print_all_toks();
+  //print_all_toks();
+  parse_all();
   return 0;
 }
