@@ -11,34 +11,60 @@
 //
 //  Scanner Grammar Rules:
 //
-// [x] anything           = .
-// [x] nonnewline         = ^newline
-// [x] letter             = "A" | ... | "Z" | "a" | ... | "z"
-// [x] underscore_letter  = "_" | letter
-// [x] digit              = "0" | ... | "9"
-// [x] nonzeroDigit       = "1" | ... | "9"
-// [x] one_whitespace     = " " | tab | "\n"
-// [x] whitespace         = one_whitespace {one_whitespace}
-// [x] escSeq             = "\n" | "\t" | ...
-// [x] printCharDbl       = (^"\" & ^""") | escSeq
-// [x] printCharSing      = (^"\" & ^"'") | escSeq
-// [x] identifier         = underscore_letter {underscore_letter | digit}
-// [x] linecomment        = "//" {nonnewline} "\n"
-// [x] mlinecomment       = "/*" {anything} "*/"
-// [x] comment            = linecomment | mlinecomment
-// [x] operator           = "-" | "+" | "/" | ...
-// [x] eaten              = comment | whitespace
-// [x] int_literal        = "0" | nonzeroDigit {digit}
-// [x] str_literal        = """ {printCharDbl} """
-// [x] char_literal       = "'" printCharSing "'"
-// [x] literal            = int_literal | str_literal | char_literal
-// [x] token              = identifier | operator | literal
-// [x] scanning           = {{eaten} token} EOF
-
+// scanning           = {{eaten} token} EOF.
+// token              = identifier | literal | operator.
+// identifier         = underscore_letter {underscore_letter | digit}.
+// underscore_letter  = "_" | letter.
+// letter             = "A" | ... | "Z" | "a" | ... | "z"
+// digit              = "0" | ... | "9".
+// literal            = int_literal | str_literal | char_literal.
+// int_literal        = "0" | nonzeroDigit {digit}.
+// nonzeroDigit       = "1" | ... | "9"
+// str_literal        = """ {printCharDbl} """.
+// printCharDbl       = (^"\" & ^""") | escSeq
+// escSeq             = "\n" | "\t" | ...
+// char_literal       = "'" printCharSing "'".
+// printCharSing      = (^"\" & ^"'") | escSeq
+// operator           = "-" | "+" | "/" | ...
+// eaten              = comment | whitespace.
+// comment            = linecomment | mlinecomment.
+// linecomment        = "//" {nonnewline} "\n".
+// nonnewline         = ^newline
+// mlinecomment       = "/*" {anything} "*/".
+// anything           = .
+// whitespace         = one_whitespace {one_whitespace}.
+// one_whitespace     = " " | tab | newline.
 
 //
 //  Parser Grammar Rules:
 //
+// parsing            = {def (funcargdef (body | ";") |
+//                            {arrayidx} | "=" expr] ";")}.
+// def                = type identifier.
+// type               = ["const"] ("void" | "int" | "char" | "bool") {"*"}.
+// funcargdef         = "(" [type [identifier] {"," type [identifier]}] ")".
+// arrayidx           = "[" expr "]"
+// body               = "{" {bodyelem} "}".
+// bodyelem           = whileloop | ifblock | statement.
+// whileloop          = "while" "(" expr ")" body.
+// ifblock            = "if" "(" expr ")" body 
+//                        {"else" "if" "(" expr ")" body} ["else" body].
+// statement          = identifier (funcarg | "=" expr) ";"
+// funcarg            = "(" [expr {"," expr}] ")"
+// expr               = str_literal | expr1
+// expr1              = expr2 {"||" expr2}.
+// expr2              = expr3 {"&&" expr3}.
+// expr3              = expr4 {"|"  expr4}.
+// expr4              = expr5 {"^"  expr5}.
+// expr5              = expr6 {"&"  expr6}.
+// expr6              = expr7 {("==" | "!=") expr7}.
+// expr7              = expr8 {("<" | "<=" | ">" | ">=") expr8}.
+// expr8              = expr9 {("<<" | ">>") expr9}.
+// expr9              = term {("+" | "-") term}.
+// term               = factor {("*" | "/" | "%") factor}.
+// factor             = ["-"] ( identifier [funcarg] {arrayidx} | int_literal |
+//                              char_literal | true_literal | false_literal |
+//                              "(" expr ")" ).
 
 //>>----------------------------------------------------------------------------
 // BEGIN LIBRARY FUNCTION DECLARATIONS
@@ -64,62 +90,62 @@ const int EOF     = -1;
 
 // token types (TT)
 // - miscelaneous
-const int TT_EOF               = -1;  // [x] end of file (i.e. EOF)
+const int TT_EOF               = -1;  // end of file (i.e. EOF)
 const int TT_ERROR             =  0;  // not a valid token (default value)
-const int TT_COMMENT           =  1;  // [x] comment
-const int TT_WHITESPACE        =  2;  // [x] whitespace
-const int TT_IDENTIFIER        =  3;  // [x] ("_" | letter) {"_" | letter | digit}
+const int TT_COMMENT           =  1;  // comment
+const int TT_WHITESPACE        =  2;  // whitespace
+const int TT_IDENTIFIER        =  3;  // ("_" | letter) {"_" | letter | digit}
 
-const int TT_INT_LITERAL       =  4;  // [x] "0"|nonzeroDigit{digit}
-const int TT_STRING_LITERAL    =  5;  // [x] """ {printChar | "\'" | \n} """
-const int TT_CHARACTER_LITERAL =  6;  // [x] "'" (printChar | """) "'"
+const int TT_INT_LITERAL       =  4;  // "0"|nonzeroDigit{digit}
+const int TT_STRING_LITERAL    =  5;  // """ {printChar | "\'" | \n} """
+const int TT_CHARACTER_LITERAL =  6;  // "'" (printChar | """) "'"
 // - keywords
-const int TT_BOOL              =  6;  // [x] bool
-const int TT_BREAK             =  7;  // [x] break 
-const int TT_CHAR              =  8;  // [x] char
-const int TT_CONST             =  9;  // [x] const
-const int TT_CONTINUE          = 10;  // [x] continue
-const int TT_ELSE              = 11;  // [x] else
-const int TT_FALSE_LITERAL     = 12;  // [x] false
-const int TT_IF                = 13;  // [x] if
-const int TT_INT               = 14;  // [x] int
-const int TT_NULL              = 15;  // [x] NULL
-const int TT_RETURN            = 16;  // [x] return
-const int TT_TRUE_LITERAL      = 17;  // [x] true
-const int TT_VOID              = 18;  // [x] void
-const int TT_WHILE             = 19;  // [x] while
+const int TT_BOOL              =  6;  // bool
+const int TT_BREAK             =  7;  // break 
+const int TT_CHAR              =  8;  // char
+const int TT_CONST             =  9;  // const
+const int TT_CONTINUE          = 10;  // continue
+const int TT_ELSE              = 11;  // else
+const int TT_FALSE_LITERAL     = 12;  // false
+const int TT_IF                = 13;  // if
+const int TT_INT               = 14;  // int
+const int TT_NULL              = 15;  // NULL
+const int TT_RETURN            = 16;  // return
+const int TT_TRUE_LITERAL      = 17;  // true
+const int TT_VOID              = 18;  // void
+const int TT_WHILE             = 19;  // while
 // - operators
-const int TT_BITSHIFT_LEFT     = 21;  // [x] <<
-const int TT_BITSHIFT_RIGHT    = 22;  // [x] >>
-const int TT_BITWISE_AND       = 23;  // [x] & (also the address of operator)
-const int TT_ADDRESS_OF        = 23;  // [x] &
-const int TT_BITWISE_INVERT    = 24;  // [x] ~
-const int TT_BITWISE_OR        = 25;  // [x] |
-const int TT_BITWISE_XOR       = 26;  // [x] ^
-const int TT_BOOLEAN_AND       = 27;  // [x] &&
-const int TT_BOOLEAN_NOT       = 28;  // [x] !
-const int TT_BOOLEAN_OR        = 29;  // [x] ||
-const int TT_COMMA             = 30;  // [x] ,
-const int TT_DIVIDE            = 31;  // [x] /
-const int TT_EQUALITY          = 33;  // [x] ==
-const int TT_EQUALS            = 34;  // [x] =
-const int TT_GREATER           = 35;  // [x] >
-const int TT_GREATER_EQUAL     = 36;  // [x] >=
-const int TT_LESS              = 37;  // [x] <
-const int TT_LESS_EQUAL        = 38;  // [x] <=
-const int TT_LCURLY            = 39;  // [x] {
-const int TT_LPAREN            = 40;  // [x] (
-const int TT_LSQUARE           = 41;  // [x] [
-const int TT_MINUS             = 42;  // [x] -
-const int TT_MODULUS           = 43;  // [x] %
-const int TT_MULTIPLY          = 44;  // [x] * (also the dereference)
-const int TT_DEREFERENCE       = 44;  // [x] *
-const int TT_NOT_EQUAL         = 45;  // [x] !=
-const int TT_PLUS              = 46;  // [x] +
-const int TT_RCURLY            = 47;  // [x] }
-const int TT_RPAREN            = 48;  // [x] )
-const int TT_RSQUARE           = 49;  // [x] ]
-const int TT_SEMICOLON         = 50;  // [x] ;
+const int TT_BITSHIFT_LEFT     = 21;  // <<
+const int TT_BITSHIFT_RIGHT    = 22;  // >>
+const int TT_BITWISE_AND       = 23;  // & (also the address of operator)
+const int TT_ADDRESS_OF        = 23;  // &
+const int TT_BITWISE_INVERT    = 24;  // ~
+const int TT_BITWISE_OR        = 25;  // |
+const int TT_BITWISE_XOR       = 26;  // ^
+const int TT_BOOLEAN_AND       = 27;  // &&
+const int TT_BOOLEAN_NOT       = 28;  // !
+const int TT_BOOLEAN_OR        = 29;  // ||
+const int TT_COMMA             = 30;  // ,
+const int TT_DIVIDE            = 31;  // /
+const int TT_EQUALITY          = 33;  // ==
+const int TT_EQUALS            = 34;  // =
+const int TT_GREATER           = 35;  // >
+const int TT_GREATER_EQUAL     = 36;  // >=
+const int TT_LESS              = 37;  // <
+const int TT_LESS_EQUAL        = 38;  // <=
+const int TT_LCURLY            = 39;  // {
+const int TT_LPAREN            = 40;  // (
+const int TT_LSQUARE           = 41;  // [
+const int TT_MINUS             = 42;  // -
+const int TT_MODULUS           = 43;  // %
+const int TT_MULTIPLY          = 44;  // * (also the dereference)
+const int TT_DEREFERENCE       = 44;  // *
+const int TT_NOT_EQUAL         = 45;  // !=
+const int TT_PLUS              = 46;  // +
+const int TT_RCURLY            = 47;  // }
+const int TT_RPAREN            = 48;  // )
+const int TT_RSQUARE           = 49;  // ]
+const int TT_SEMICOLON         = 50;  // ;
 // END CONSTANTS
 //<<----------------------------------------------------------------------------
 
@@ -146,6 +172,9 @@ int   prev_line_column = 0;  // column count of previous line
 
 // END GLOBAL VARIABLES
 //<<----------------------------------------------------------------------------
+
+//>>----------------------------------------------------------------------------
+// BEGIN GENERIC HELPER FUNCTIONS
 
 int strequal(const char* a, const char* b) {
   while (a[0] == b[0] && a[0] != '\0') {
@@ -188,6 +217,12 @@ void printint(int i) {
   }
   printstr(printint_ptr);
 }
+
+// END GENERIC HELPER FUNCTIONS
+//<<----------------------------------------------------------------------------
+
+//>>----------------------------------------------------------------------------
+// BEGIN SCANNER FUNCTIONS
 
 void scan_error(const char* msg) {
   printstr("Scanner error: ");
@@ -243,7 +278,7 @@ void get_next_char() {
     if (read_char < 0) { // for portability, don't assume EOF == -1
       next_char = EOF;
     } else {
-      next_char = (char) read_char;
+      next_char = read_char;
     }
   }
 }
@@ -438,10 +473,10 @@ int comment() {
   return FALSE;
 }
 
-int single_op(char ch, int type) {
+int single_op(char ch, int toktype) {
   if (next_char == ch) {
     get_next_char();
-    tok_type = type;
+    tok_type = toktype;
     return TRUE;
   }
   return FALSE;
@@ -583,7 +618,7 @@ int literal() {
 }
 
 int token() {
-  if (identifier() || operator() || literal()) {
+  if (identifier() || literal() || operator()) {
     return TRUE;
   }
   return FALSE;
@@ -603,6 +638,144 @@ void get_next_tok() {
 void scanner_init() {
   get_next_char();
 }
+
+// END SCANNER FUNCTIONS
+//<<----------------------------------------------------------------------------
+
+
+
+//>>----------------------------------------------------------------------------
+// BEGIN PARSER FUNCTIONS
+
+void parse_error(const char* msg) {
+  printstr("Parser error: ");
+  printstr(msg);
+  printstr("\n  ");
+  print_tok();
+  printstr("  lineno      = ");
+  printint(lineno);
+  putchar('\n');
+  printstr("  column      = ");
+  printint(column);
+  putchar('\n');
+}
+
+int expr();
+
+int funcarg() {
+  if (tok_type == TT_LPAREN) {
+    get_next_tok();
+    if (expr()) {
+      // handle expr
+    }
+    while (tok_type == TT_COMMA) {
+      get_next_tok();
+      if (expr()) {
+        // handle expr
+      } else {
+        parse_error("Expected expression");
+      }
+    }
+    if (tok_type == TT_RPAREN) {
+      get_next_tok();
+    } else {
+      parse_error("Expected closing parenthese on function call");
+    }
+    // handle function call
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int arrayidx() {
+  if (tok_type == TT_LSQUARE) {
+    if (expr()) {
+      // handle expr
+    } else {
+      parse_error("Expected expression in array index");
+    }
+    if (tok_type != TT_RSQUARE) {
+      parse_error("Expected ']'");
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int factor() {
+  if (tok_type == TT_MINUS) {
+    // handle unary minus sign
+    get_next_tok();
+  }
+
+  if (tok_type == TT_IDENTIFIER) {
+    get_next_tok();
+    if (funcarg()) {
+      // handle a function call
+    } else {
+      // handle a variable name
+    }
+    while (arrayidx()) {
+      // handle array indexing
+    }
+    // handle identifier
+    return TRUE;
+  } else if (tok_type == TT_INT_LITERAL) {
+    get_next_tok();
+    // handle int literal
+    return TRUE;
+  } else if (tok_type == TT_CHAR_LITERAL) {
+    get_next_tok();
+    // handle character literal
+    return TRUE;
+  } else if (tok_type == TT_TRUE_LITERAL) {
+    get_next_tok();
+    // handle true literal
+    return TRUE;
+  } else if (tok_type == TT_FALSE_LITERAL) {
+    get_next_tok();
+    // handle false literal
+    return TRUE;
+  } else if (tok_type == TT_LPAREN) {
+    get_next_tok();
+    if (!expr()) {
+      parse_error("expected expression within parentheses");
+    }
+    if (tok_type != TT_RPAREN) {
+      parse_error("expected right parentheses");
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
+int term() { }
+int expr9() { }
+int expr8() { }
+int expr7() { }
+int expr6() { }
+int expr5() { }
+int expr4() { }
+int expr3() { }
+int expr2() { }
+int expr1() { }
+int expr() { }
+int statement() { }
+int ifblock() { }
+int whileloop() { }
+int bodyelem() { }
+int body() { }
+int funcargdef() { }
+int type() { }
+int def() { }
+void parse_all() { }
+void parser_init() { }
+
+// END PARSER FUNCTIONS
+//<<----------------------------------------------------------------------------
+
+//>>----------------------------------------------------------------------------
+// BEGIN MAIN FUNCTIONS
 
 void print_tok_type() {
   if      (tok_type == TT_EOF              ) { printstr("TT_EOF"); }
@@ -661,24 +834,19 @@ void print_tok_type() {
 }
 
 void print_tok() {
-  printstr("Token:\n");
-  printstr("  lineno = ");
+  printstr("Token: loc=(");
   printint(lineno);
-  printstr("\n");
-  printstr("  column = ");
+  printstr(", ");
   printint(column);
-  printstr("\n");
-  printstr("  str    = \"");
+  printstr("; tok=(\"");
   printstr(tok_str);
-  printstr("\"\n");
-  printstr("  type   = ");
+  printstr("\", ");
   printint(tok_type);
   printstr(" (");
   print_tok_type();
-  printstr(")\n");
-  printstr("  int    = ");
+  printstr("), ");
   printint(tok_int);
-  printstr("\n");
+  printstr(")\n");
 }
 
 void print_all_toks() {
